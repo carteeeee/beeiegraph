@@ -1,0 +1,29 @@
+<!doctype html>
+<html>
+    <head>
+        <title>beeie node graph | versions</title>
+        <meta name="charset" content="UTF-8">
+        <script src="/js/nodegraph.js"></script>
+        <link rel="stylesheet" href="/css/graphs.css">
+    </head>
+    <body>
+        <canvas id="canvas" width="1000" height="500"></canvas>
+        <script>
+            let canvas = document.getElementById("canvas");
+            let graph = new NodeGraph(canvas, "white");
+            let last = null;
+
+            const update = timestamp => {
+                if (!last) last = timestamp;
+                let delta = timestamp - last;
+
+                graph.draw(delta);
+
+                last = timestamp;
+                requestAnimationFrame(update);
+            };
+
+            requestAnimationFrame(update);
+        </script>
+    </body>
+</html>
