@@ -34,17 +34,21 @@ class NodeGraph {
         const ctx = canvas.getContext("2d");
         this.canvas = canvas;
         this.ctx = ctx;
-        this.nodes = [new Node()];
+        this.nodes = [
+            new Node(0, 0, "a", {text: "a"}),
+            new Node(100, 100, "b")
+        ];
         this.bg = backgroundColor;
         this.cam = new Camera(0, 0, 1);
-        this.mouseX = 0;
-        this.mouseY = 0;
+        this.mouseX = 99999;
+        this.mouseY = 99999;
         this.mouseBtns = 0;
-        this.lastMouseX = 0;
-        this.lastMouseY = 0;
+        this.lastMouseX = 99999;
+        this.lastMouseY = 99999;
         this.lastMouseBtns = 0;
         document.addEventListener("mousemove", this.mouseUpdate.bind(this), false);
         document.addEventListener("mouseenter", this.mouseUpdate.bind(this), false);
+        document.addEventListener("mosuescroll", this.scrollEvent.bind(this), false);
         document.addEventListener("DOMMouseScroll", this.scrollEvent.bind(this), false);
     }
     
@@ -68,18 +72,40 @@ class NodeGraph {
     }
 
     draw(delta) {
+        let tooltip = null;
         this.ctx.fillStyle = this.bg;
         this.ctx.fillRect(0, 0, 1000, 500);
 
         this.nodes.forEach(node=>{
             node.draw(this.ctx, this.cam);
+            if (node.pointWithin(this.mouseX, this.mouseY, this.cam)) tooltip = node.tooltip;
         });
+
+        if (tooltip) {
+            this.ctx.beginPath();
+            this.ctx.fillStyle = "white";
+            this.ctx.strokeStyle = "black";
+            this.ctx.lineWidth = 3;
+            this.ctx.rect(this.mouseX, this.mouseY, 300, 200);
+            this.ctx.fill();
+            this.ctx.stroke();
+
+            this.ctx.font = "24px serif";
+            this.ctx.textBaseline = "top";
+            this.ctx.textAlign = "start";
+            this.ctx.fillStyle = "black";
+            this.ctx.fillText(tooltip.text, this.mouseX + 5, this.mouseY + 5);
+        }
     }
 }
 
 class Node {
-    constructor() {
-        this.pos = new Vector2d(0, 0);
+    constructor(x, y, name, tooltip) {
+        this.pos = new Vector2d(x, y);
+        this.radius = 40;
+        this.name = name;
+        this.tooltip = null;
+        if (tooltip) this.tooltip = tooltip;
     }
 
     draw(ctx, camera) {
@@ -87,8 +113,22 @@ class Node {
 
         ctx.beginPath();
         ctx.strokeStyle = "black";
+        ctx.fillStyle = "white";
         ctx.lineWidth = 4 / camera.zoom;
-        ctx.arc(newpos.x, newpos.y, 40 / camera.zoom, 0, 2 * Math.PI);
+        ctx.arc(newpos.x, newpos.y, this.radius / camera.zoom, 0, 2 * Math.PI);
+        ctx.fill();
         ctx.stroke();
+
+        ctx.font = 24 / camera.zoom + "px serif";
+        ctx.textBaseline = "top";
+        ctx.textAlign = "center";
+        ctx.fillStyle = "black";
+        ctx.fillText(this.name, newpos.x, newpos.y + 5 + this.radius / camera.zoom);
+    }
+
+    pointWithin(x, y, camera) {
+        let newpos = camera.transform(this.pos);
+
+        return (newpos.x - x) ** 2 + (newpos.y - y) ** 2 < (this.radius / camera.zoom) ** 2;
     }
 }
