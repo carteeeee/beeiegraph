@@ -37,8 +37,36 @@ class NodeGraph {
         this.nodes = [new Node()];
         this.bg = backgroundColor;
         this.cam = new Camera(0, 0, 1);
+        this.mouseX = 0;
+        this.mouseY = 0;
+        this.mouseBtns = 0;
+        this.lastMouseX = 0;
+        this.lastMouseY = 0;
+        this.lastMouseBtns = 0;
+        document.addEventListener("mousemove", this.mouseUpdate.bind(this), false);
+        document.addEventListener("mouseenter", this.mouseUpdate.bind(this), false);
+        document.addEventListener("DOMMouseScroll", this.scrollEvent.bind(this), false);
     }
     
+    mouseUpdate(e) {
+        this.mouseX = e.pageX;
+        this.mouseY = e.pageY;
+        this.mouseBtns = e.buttons;
+
+        if (this.lastMouseBtns === 1 && this.mouseBtns === 1) {
+            this.cam.x -= (this.mouseX - this.lastMouseX) * this.cam.zoom;
+            this.cam.y -= (this.mouseY - this.lastMouseY) * this.cam.zoom;
+        }
+        
+        this.lastMouseX = this.mouseX;
+        this.lastMouseY = this.mouseY;
+        this.lastMouseBtns = this.mouseBtns;
+    }
+
+    scrollEvent(e) {
+        this.cam.zoom += e.detail/100;
+    }
+
     draw(delta) {
         this.ctx.fillStyle = this.bg;
         this.ctx.fillRect(0, 0, 1000, 500);
@@ -46,9 +74,6 @@ class NodeGraph {
         this.nodes.forEach(node=>{
             node.draw(this.ctx, this.cam);
         });
-
-        //this.cam.x += delta / 10;
-        this.cam.zoom += delta / 100;
     }
 }
 
