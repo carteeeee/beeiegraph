@@ -16,10 +16,10 @@
             const update = timestamp => {
                 if (!last) last = timestamp;
                 let delta = timestamp - last;
+                last = timestamp;
 
                 graph.draw(delta);
 
-                last = timestamp;
                 requestAnimationFrame(update);
             };
 
