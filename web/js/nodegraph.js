@@ -13,31 +13,22 @@ class Camera extends Vector2d {
         this.zoom = zoom;
     }
 
-    xTransform(x) {
-        return (x - this.x) / this.zoom;
-    }
-
-    yTransform(y) {
-        return (y - this.y) / this.zoom;
-    }
-
     transform(v) {
         return new Vector2d(
-            (v.x - this.x) / this.zoom,
-            (v.y - this.y) / this.zoom
+            //(v.x - this.x) / this.zoom,
+            //(v.y - this.y) / this.zoom
+            v.x / this.zoom - this.x,
+            v.y / this.zoom - this.y
         );
     }
 }
 
 class NodeGraph {
-    constructor(canvas, backgroundColor) {
+    constructor(canvas, backgroundColor, data) {
         const ctx = canvas.getContext("2d");
-        this.canvas = canvas;
         this.ctx = ctx;
-        this.nodes = [
-            new Node(0, 0, "a", {text: "a"}),
-            new Node(100, 100, "b")
-        ];
+        this.nodes = data.nodes;
+        this.connections = data.connections;
         this.bg = backgroundColor;
         this.cam = new Camera(0, 0, 1);
         this.mouseX = 99999;
@@ -46,10 +37,10 @@ class NodeGraph {
         this.lastMouseX = 99999;
         this.lastMouseY = 99999;
         this.lastMouseBtns = 0;
-        document.addEventListener("mousemove", this.mouseUpdate.bind(this), false);
-        document.addEventListener("mouseenter", this.mouseUpdate.bind(this), false);
-        document.addEventListener("mosuescroll", this.scrollEvent.bind(this), false);
-        document.addEventListener("DOMMouseScroll", this.scrollEvent.bind(this), false);
+        canvas.addEventListener("mousemove", this.mouseUpdate.bind(this), false);
+        canvas.addEventListener("mouseenter", this.mouseUpdate.bind(this), false);
+        canvas.addEventListener("mosuescroll", this.scrollEvent.bind(this), false);
+        canvas.addEventListener("DOMMouseScroll", this.scrollEvent.bind(this), false);
     }
     
     mouseUpdate(e) {
@@ -58,8 +49,8 @@ class NodeGraph {
         this.mouseBtns = e.buttons;
 
         if (this.lastMouseBtns === 1 && this.mouseBtns === 1) {
-            this.cam.x -= (this.mouseX - this.lastMouseX) * this.cam.zoom;
-            this.cam.y -= (this.mouseY - this.lastMouseY) * this.cam.zoom;
+            this.cam.x -= this.mouseX - this.lastMouseX;
+            this.cam.y -= this.mouseY - this.lastMouseY;
         }
         
         this.lastMouseX = this.mouseX;
@@ -68,13 +59,25 @@ class NodeGraph {
     }
 
     scrollEvent(e) {
-        this.cam.zoom += e.detail/100;
+        this.cam.zoom += this.cam.zoom / e.detail / 3;
     }
 
     draw(delta) {
         let tooltip = null;
         this.ctx.fillStyle = this.bg;
         this.ctx.fillRect(0, 0, 1000, 500);
+
+        this.connections.forEach(conn=>{
+            let pos1 = this.cam.transform(this.nodes[conn[0]].pos);
+            let pos2 = this.cam.transform(this.nodes[conn[1]].pos);
+
+            this.ctx.beginPath();
+            this.ctx.strokeStyle = "black";
+            this.ctx.lineWidth = 4 / this.cam.zoom;
+            this.ctx.moveTo(pos1.x, pos1.y);
+            this.ctx.lineTo(pos2.x, pos2.y);
+            this.ctx.stroke();
+        });
 
         this.nodes.forEach(node=>{
             node.draw(this.ctx, this.cam);
@@ -83,7 +86,7 @@ class NodeGraph {
 
         if (tooltip) {
             this.ctx.beginPath();
-            this.ctx.fillStyle = "white";
+            this.ctx.fillStyle = "#eee";
             this.ctx.strokeStyle = "black";
             this.ctx.lineWidth = 3;
             this.ctx.rect(this.mouseX, this.mouseY, 300, 200);
@@ -102,7 +105,7 @@ class NodeGraph {
 class Node {
     constructor(x, y, name, tooltip) {
         this.pos = new Vector2d(x, y);
-        this.radius = 40;
+        this.radius = 30;
         this.name = name;
         this.tooltip = null;
         if (tooltip) this.tooltip = tooltip;
@@ -123,12 +126,15 @@ class Node {
         ctx.textBaseline = "top";
         ctx.textAlign = "center";
         ctx.fillStyle = "black";
-        ctx.fillText(this.name, newpos.x, newpos.y + 5 + this.radius / camera.zoom);
+        ctx.fillText(this.name, newpos.x, newpos.y + 5 / camera.zoom + this.radius / camera.zoom);
     }
 
     pointWithin(x, y, camera) {
-        let newpos = camera.transform(this.pos);
-
+        let newpos = camera.transform(new Vector2d(
+            this.pos.x + 10 * camera.zoom,
+            this.pos.y + 10 * camera.zoom
+        ));
+        console.log((newpos.x - x) ** 2 + (newpos.y - y) ** 2, (this.radius / camera.zoom) ** 2);
         return (newpos.x - x) ** 2 + (newpos.y - y) ** 2 < (this.radius / camera.zoom) ** 2;
     }
 }
