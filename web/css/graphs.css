@@ -1,3 +1,8 @@
+@font-face {
+    font-family: 'SM64Font';
+    src: url('/assets/SM64Font.ttf');
+}
+
 #canvas {
     border: black solid 3px;
 }

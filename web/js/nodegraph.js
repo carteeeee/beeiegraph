@@ -27,7 +27,16 @@ class NodeGraph {
     constructor(canvas, backgroundColor, data) {
         const ctx = canvas.getContext("2d");
         this.ctx = ctx;
-        this.nodes = data.nodes;
+        this.nodes = [];
+        data.nodes.forEach(node => {
+            this.nodes.push(new Node(
+                node.x,
+                node.y,
+                node.name,
+                node.text,
+                node.link
+            ));
+        });
         this.connections = data.connections;
         this.bg = backgroundColor;
         this.cam = new Camera(0, 0, 1);
@@ -41,6 +50,7 @@ class NodeGraph {
         canvas.addEventListener("mouseenter", this.mouseUpdate.bind(this), false);
         canvas.addEventListener("mosuescroll", this.scrollEvent.bind(this), false);
         canvas.addEventListener("DOMMouseScroll", this.scrollEvent.bind(this), false);
+        canvas.addEventListener("mousedown", this.clickEvent.bind(this), false);
     }
     
     mouseUpdate(e) {
@@ -62,24 +72,32 @@ class NodeGraph {
         this.cam.zoom += this.cam.zoom / e.detail / 3;
     }
 
+    clickEvent(e) {
+        this.nodes.forEach(node => {
+            if (node.pointWithin(e.clientX, e.clientY, this.cam) && node.link) {
+                window.location = node.link;
+            }
+        });
+    }
+
     draw(delta) {
         let tooltip = null;
         this.ctx.fillStyle = this.bg;
         this.ctx.fillRect(0, 0, 1000, 500);
 
-        this.connections.forEach(conn=>{
+        this.connections.forEach(conn => {
             let pos1 = this.cam.transform(this.nodes[conn[0]].pos);
             let pos2 = this.cam.transform(this.nodes[conn[1]].pos);
 
             this.ctx.beginPath();
-            this.ctx.strokeStyle = "black";
+            this.ctx.strokeStyle = "#777";
             this.ctx.lineWidth = 4 / this.cam.zoom;
             this.ctx.moveTo(pos1.x, pos1.y);
             this.ctx.lineTo(pos2.x, pos2.y);
             this.ctx.stroke();
         });
 
-        this.nodes.forEach(node=>{
+        this.nodes.forEach(node => {
             node.draw(this.ctx, this.cam);
             if (node.pointWithin(this.mouseX, this.mouseY, this.cam)) tooltip = node.tooltip;
         });
@@ -93,22 +111,24 @@ class NodeGraph {
             this.ctx.fill();
             this.ctx.stroke();
 
-            this.ctx.font = "24px serif";
+            this.ctx.font = "12px SM64Font";
             this.ctx.textBaseline = "top";
             this.ctx.textAlign = "start";
             this.ctx.fillStyle = "black";
-            this.ctx.fillText(tooltip.text, this.mouseX + 5, this.mouseY + 5);
+            this.ctx.fillText(tooltip, this.mouseX + 8, this.mouseY + 14);
         }
     }
 }
 
 class Node {
-    constructor(x, y, name, tooltip) {
+    constructor(x, y, name, tooltip, link) {
         this.pos = new Vector2d(x, y);
         this.radius = 30;
         this.name = name;
         this.tooltip = null;
         if (tooltip) this.tooltip = tooltip;
+        this.link = null;
+        if (link) this.link = link;
     }
 
     draw(ctx, camera) {
@@ -122,11 +142,11 @@ class Node {
         ctx.fill();
         ctx.stroke();
 
-        ctx.font = 24 / camera.zoom + "px serif";
+        ctx.font = 12 / camera.zoom + "px SM64Font";
         ctx.textBaseline = "top";
         ctx.textAlign = "center";
         ctx.fillStyle = "black";
-        ctx.fillText(this.name, newpos.x, newpos.y + 5 / camera.zoom + this.radius / camera.zoom);
+        ctx.fillText(this.name, newpos.x, newpos.y + 14 / camera.zoom + this.radius / camera.zoom);
     }
 
     pointWithin(x, y, camera) {
@@ -134,7 +154,6 @@ class Node {
             this.pos.x + 10 * camera.zoom,
             this.pos.y + 10 * camera.zoom
         ));
-        console.log((newpos.x - x) ** 2 + (newpos.y - y) ** 2, (this.radius / camera.zoom) ** 2);
         return (newpos.x - x) ** 2 + (newpos.y - y) ** 2 < (this.radius / camera.zoom) ** 2;
     }
 }
