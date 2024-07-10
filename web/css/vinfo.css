@@ -1,0 +1,28 @@
+@font-face {
+    font-family: 'SM64Font';
+    src: url('/assets/SM64Font.ttf');
+}
+
+div {
+    font-size: 1em;
+    font-family: sans-serif;
+}
+
+#header {
+    font-size: 2em;
+    font-family: SM64Font;
+}
+
+#content {
+    white-space: pre-wrap;
+}
+
+#link {
+    display: block;
+    width: fit-content;
+}
+
+
+.hide {
+    display: none;
+}

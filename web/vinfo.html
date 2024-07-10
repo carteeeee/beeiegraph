@@ -3,8 +3,54 @@
     <head>
         <title>version info</title>
         <meta name="charset" content="UTF-8">
+        <link rel="stylesheet" href="/css/vinfo.css">
     </head>
     <body>
-        hello
+        <div id="loading">loading...</div>
+        <div id="header"></div>
+        <br>
+        <div id="content"></div>
+        <br>
+        <a id="link"><div id="linkdiv"></div></a>
+        <div id="nolink" class="hide">sorry, there is no link available for this version :(</div>
+        <script>
+            let search = window.location.search;
+            const displayData = data => {
+                let loadingDiv = document.getElementById("loading");
+                let headerDiv = document.getElementById("header");
+                let contentDiv = document.getElementById("content");
+                let linkDiv = document.getElementById("linkdiv");
+                let linkAnchor = document.getElementById("link");
+                let nolinkDiv = document.getElementById("nolink");
+
+                headerDiv.textContent = data.header;
+                contentDiv.textContent = data.content;
+                if (data.link) {
+                    linkDiv.textContent = data.linkText;
+                    linkAnchor.href = data.link;
+                }
+                else nolinkDiv.classList.remove("hide");
+
+                loadingDiv.classList.add("hide");
+            }
+
+            if (search !== "") {
+                fetch(`/assets/version-${search.substring(1)}.json`)
+                    .then(res => {
+                        if (!res.ok) throw new Error(`the bee is not okay, http status: ${res.status}`);
+                        return res.json()
+                    })
+                    .then(json => {
+                        displayData(json);
+                    })
+                    .catch(error => {
+                        alert("there was an error, please check the console!");
+                        console.error(error);
+                    });
+            } else {
+                alert("erm you need a search query");
+                console.error("no search query found");
+            }
+        </script>
     </body>
 </html>
