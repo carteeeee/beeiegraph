@@ -1,4 +1,4 @@
 {
-    "header": "B3313 0.1",
-    "content": "does this even exist?"
+    "header": "B3313 0.7",
+    "content": "This build was released on the 22nd of November, 2021.\n\nGeneral Changes:\n - Fast-travel system introduced.\n - Ability to switch between Mario and Luigi in the Castle Grounds.\n - FOV and aspect ratio settings were added to the pause screen.\n - The stars now use a 2d texture.\n - The verticies on Mario's model were fixed.\n\nNew Areas:\nCourse 1 Area 7: Goomba Hills\nCourse 12 Area 2: Monkey Slide"
 }
