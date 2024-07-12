@@ -1,4 +1,4 @@
 {
-    "header": "B3313 0.1",
-    "content": "does this even exist?"
+    "header": "B3313 Motos Factory",
+    "content": "This version is a small Motos Factory preview.\nThis is the latest version of B3313 able to run on Mupen64+\n\nGeneral Changes:\n - The Mutant Toad jumpscare was introduced.\n - The RTC (real time clock) system was introduced. Now the game checks your system time and changes some areas based on the time.\n - You can now switch to Luigi in Big Boo's fortress by entering the double doors with the L in front of the mirror.\n\nNew Areas:\n - Motos Factory\n - Unsettling Maze\n - Scorched Tar Land\n - Blazing Bullet Factory\n - a prototype version of Stellar Tower"
 }

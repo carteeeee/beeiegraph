@@ -1,0 +1,17 @@
+body {
+    font-family: sans-serif;
+}
+
+a {
+    color: #555;
+}
+
+a:visited {
+    color: #777;
+}
+
+.monospace {
+    font-family: monospace;
+    background-color: #ccc;
+    display: inline;
+}
