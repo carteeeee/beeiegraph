@@ -1,4 +1,4 @@
 {
-    "header": "B3313 0.1",
-    "content": "does this even exist?"
+    "header": "B3313 UA A1",
+    "content": "This build was released on the 28th of August, 2023.\n\nGeneral Changes:\n - Fixed duplicate stars.\n - Fixed some crashes.\n - Readded Captain Fly Guy.\n - Added silver star mission in Grassy Highlands\n - Re-enabled post credits ACT 1 mode\n - Tweaked Cave Dungeon.\n - Backflip now unlocks at 2/3 red stars as intended.\n - Fixed Dream Tower cage collision.\n - Fixed stars going OOB from level scaling.\n - Better water camea.\n - Some AI trolling.\n - Added music corruptions."
 }

@@ -1,4 +1,4 @@
 {
-    "header": "B3313 0.1",
-    "content": "does this even exist?"
+    "header": "B3313 1.0 Unabandoned (A0)",
+    "content": "This build was released on the 31st of July, 2023.\nThis version aimed to fix the issues in 0.9 and make it more playable.\n\nGeneral Changes:\n - Fixed Star IDs. (this caused 0.9 saves to be unplayable on UA)\n - Some intentional and unintentional crashes were removed.\n - Fixed the ending route and added new content for the ending.\n - Some warps were changed.\n\nNew Areas:\nCourse 5 Area 10: Oak Slide\nCourse 13 Area 14: Creepy Cove (beta)\nSecret 1 Area 11: Teaser Bar\nSecret 1 Area 12: Wall Castle\nOW-1 Area 0: Ending Room"
 }

@@ -1,4 +1,4 @@
 {
-    "header": "B3313 0.1",
-    "content": "does this even exist?"
+    "header": "B3313 UA A2 (starstruck)",
+    "content": "This build was released on the 10th of December, 2023.\nIt is known as starstruck because it adds many stars to the game.\n\nGeneral Changes:\n - Wf.z64's red star is back, and The Star's red star is now a normal star.\n - Genesis Basement's green star is back, and the post-game stars have become green. An extra red coin green star has been added in World of Dreams.\n - Additional stars have been added which utilize unused star IDs and post-game star IDs. These will already show up as collected if you've collected the post-game stars in a previous Unabandoned version. The aditional stars' list can be found in the changelog."
 }
