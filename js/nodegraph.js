@@ -15,8 +15,6 @@ class Camera extends Vector2d {
 
     transform(v) {
         return new Vector2d(
-            //(v.x - this.x) / this.zoom,
-            //(v.y - this.y) / this.zoom
             v.x / this.zoom - this.x,
             v.y / this.zoom - this.y
         );
@@ -50,7 +48,7 @@ class NodeGraph {
         this.physics = physics;
         this.lastFPS = Date.now();
         this.fps = 0;
-        this.dragging = 0; // 0: none, 1: camera, 2: node
+        this.dragging = 0;
         this.draggingNode = 0;
         canvas.addEventListener("mousemove", this.mouseUpdate.bind(this), false);
         canvas.addEventListener("mouseenter", this.mouseUpdate.bind(this), false);
@@ -82,8 +80,8 @@ class NodeGraph {
                 this.cam.x -= xDif;
                 this.cam.y -= yDif;
             } else if (this.dragging === 2) {
-                this.nodes[this.draggingNode].pos.x += xDif * 2;
-                this.nodes[this.draggingNode].pos.y += yDif * 2;
+                this.nodes[this.draggingNode].pos.x += xDif * this.cam.zoom;
+                this.nodes[this.draggingNode].pos.y += yDif * this.cam.zoom;
             }
         }
 
