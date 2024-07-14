@@ -30,8 +30,9 @@ class NodeGraph {
         this.nodes = [];
         data.nodes.forEach(node => {
             this.nodes.push(new Node(
-                node.x,
-                node.y,
+                //node.x,
+                //node.y,
+                0, 0,
                 node.name,
                 node.text,
                 node.link
@@ -47,6 +48,10 @@ class NodeGraph {
         this.lastMouseY = 99999;
         this.lastMouseBtns = 0;
         this.physics = physics;
+        this.lastFPS = Date.now();
+        this.fps = 0;
+        this.dragging = 0; // 0: none, 1: camera, 2: node
+        this.draggingNode = 0;
         canvas.addEventListener("mousemove", this.mouseUpdate.bind(this), false);
         canvas.addEventListener("mouseenter", this.mouseUpdate.bind(this), false);
         canvas.addEventListener("mosuescroll", this.scrollEvent.bind(this), false);
@@ -59,10 +64,30 @@ class NodeGraph {
         this.mouseY = e.pageY;
         this.mouseBtns = e.buttons;
 
-        if (this.lastMouseBtns === 1 && this.mouseBtns === 1) {
-            this.cam.x -= this.mouseX - this.lastMouseX;
-            this.cam.y -= this.mouseY - this.lastMouseY;
+        if (this.lastMouseBtns === 0 && this.mouseBtns === 1) {
+            this.nodes.forEach((node, index) => {
+                if (node.pointWithin(this.mouseX, this.mouseY, this.cam)) {
+                    this.dragging = 2;
+                    this.draggingNode = index;
+                }
+            });
+
+            if (this.dragging === 0) this.dragging = 1;
         }
+
+        if (this.lastMouseBtns === 1 && this.mouseBtns === 1) {
+            let xDif = this.mouseX - this.lastMouseX;
+            let yDif = this.mouseY - this.lastMouseY;
+            if (this.dragging === 1) {
+                this.cam.x -= xDif;
+                this.cam.y -= yDif;
+            } else if (this.dragging === 2) {
+                this.nodes[this.draggingNode].pos.x += xDif * 2;
+                this.nodes[this.draggingNode].pos.y += yDif * 2;
+            }
+        }
+
+        if (this.lastMouseBtns === 1 && this.mouseBtns === 0) this.dragging = 0;
         
         this.lastMouseX = this.mouseX;
         this.lastMouseY = this.mouseY;
@@ -74,11 +99,11 @@ class NodeGraph {
     }
 
     clickEvent(e) {
-        this.nodes.forEach(node => {
-            if (node.pointWithin(e.clientX, e.clientY, this.cam) && node.link) {
-                window.location = node.link;
-            }
-        });
+        //this.nodes.forEach(node => {
+        //    if (node.pointWithin(e.clientX, e.clientY, this.cam) && node.link) {
+        //        window.location = node.link;
+        //    }
+        //});
     }
 
     draw(delta) {
@@ -99,13 +124,22 @@ class NodeGraph {
         });
 
         if (this.physics) {
-            this.nodes.forEach(node => {
-                node.physicsTick(this.nodes);
+            this.nodes.forEach((node, index) => {
+                if (!(this.dragging === 2 && this.draggingNode === index)) {
+                    let nodeConns = [];
+                    this.connections.forEach(conn => {
+                        if (conn[0] == index) nodeConns.push(conn[1]);
+                        if (conn[1] == index) nodeConns.push(conn[0]);
+                    });
+
+                    node.physicsTick(this.nodes, nodeConns);
+                }
             });
         }
 
-        this.nodes.forEach(node => {
-            node.draw(this.ctx, this.cam, delta);
+        this.nodes.forEach((node, index) => {
+            if (!(this.dragging === 2 && this.draggingNode === index)) node.move(delta);
+            node.draw(this.ctx, this.cam);
             if (node.pointWithin(this.mouseX, this.mouseY, this.cam)) tooltip = node.tooltip;
         });
 
@@ -124,6 +158,17 @@ class NodeGraph {
             this.ctx.fillStyle = "black";
             this.ctx.fillText(tooltip, this.mouseX + 8, this.mouseY + 14);
         }
+ 
+        if (this.lastFPS < Date.now() - 100) {
+            this.fps = 1000 / delta;
+            this.lastFPS = Date.now();
+        }
+
+        this.ctx.font = "12px SM64Font";
+        this.ctx.textBaseline = "top";
+        this.ctx.textAlign = "start";
+        this.ctx.fillStyle = "black";
+        this.ctx.fillText("fps: " + this.fps.toFixed(2), 10, 15);
     }
 }
 
@@ -140,25 +185,36 @@ class Node {
         if (link) this.link = link;
     }
 
-    physicsTick(otherNodes) {
+    physicsTick(otherNodes, conns) {
         this.velocityX = 0;
         this.velocityY = 0;
-        otherNodes.forEach(node => {
+        otherNodes.forEach((node, index) => {
             if (this != node) {
-                let dist = Math.sqrt((this.pos.x - node.pos.x)**2 + (this.pos.y - node.pos.y)**2);
-                this.velocityX += (this.pos.x - node.pos.x) - dist * 10;
-                this.velocityY += (this.pos.y - node.pos.y) - dist * 10;
-                console.log(dist);
+                let x = this.pos.x - node.pos.x;
+                let y = this.pos.y - node.pos.y;
+                if (x === 0) x = Math.random() * 1000 - 500;
+                if (y === 0) y = Math.random() * 1000 - 500;
+                let d = Math.sqrt(x*x + y*y);
+                let c = 0;
+                if (conns.indexOf(index) !== -1) {
+                    c = 1 - d / 100;
+                } else {
+                    c = 1 - Math.max(0, Math.min(d, 300)) / 300;
+                }
+                this.velocityX += x*c;
+                this.velocityY += y*c;
             }
         });
         this.velocityX /= 1000;
         this.velocityY /= 1000;
     }
-
-    draw(ctx, camera, delta) {
+    
+    move(delta) {
         this.pos.x += this.velocityX * delta;
         this.pos.y += this.velocityY * delta;
-        
+    }
+
+    draw(ctx, camera) { 
         let newpos = camera.transform(this.pos);
 
         ctx.beginPath();
