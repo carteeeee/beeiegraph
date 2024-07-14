@@ -24,7 +24,7 @@ class Camera extends Vector2d {
 }
 
 class NodeGraph {
-    constructor(canvas, backgroundColor, data) {
+    constructor(canvas, backgroundColor, data, physics) {
         const ctx = canvas.getContext("2d");
         this.ctx = ctx;
         this.nodes = [];
@@ -46,6 +46,7 @@ class NodeGraph {
         this.lastMouseX = 99999;
         this.lastMouseY = 99999;
         this.lastMouseBtns = 0;
+        this.physics = physics;
         canvas.addEventListener("mousemove", this.mouseUpdate.bind(this), false);
         canvas.addEventListener("mouseenter", this.mouseUpdate.bind(this), false);
         canvas.addEventListener("mosuescroll", this.scrollEvent.bind(this), false);
@@ -97,8 +98,14 @@ class NodeGraph {
             this.ctx.stroke();
         });
 
+        if (this.physics) {
+            this.nodes.forEach(node => {
+                node.physicsTick(this.nodes);
+            });
+        }
+
         this.nodes.forEach(node => {
-            node.draw(this.ctx, this.cam);
+            node.draw(this.ctx, this.cam, delta);
             if (node.pointWithin(this.mouseX, this.mouseY, this.cam)) tooltip = node.tooltip;
         });
 
@@ -125,13 +132,33 @@ class Node {
         this.pos = new Vector2d(x, y);
         this.radius = 30;
         this.name = name;
+        this.velocityX = 0;
+        this.velocityY = 0;
         this.tooltip = null;
         if (tooltip) this.tooltip = tooltip;
         this.link = null;
         if (link) this.link = link;
     }
 
-    draw(ctx, camera) {
+    physicsTick(otherNodes) {
+        this.velocityX = 0;
+        this.velocityY = 0;
+        otherNodes.forEach(node => {
+            if (this != node) {
+                let dist = Math.sqrt((this.pos.x - node.pos.x)**2 + (this.pos.y - node.pos.y)**2);
+                this.velocityX += (this.pos.x - node.pos.x) - dist * 10;
+                this.velocityY += (this.pos.y - node.pos.y) - dist * 10;
+                console.log(dist);
+            }
+        });
+        this.velocityX /= 1000;
+        this.velocityY /= 1000;
+    }
+
+    draw(ctx, camera, delta) {
+        this.pos.x += this.velocityX * delta;
+        this.pos.y += this.velocityY * delta;
+        
         let newpos = camera.transform(this.pos);
 
         ctx.beginPath();

@@ -1,0 +1,52 @@
+<!doctype html>
+<html>
+    <head>
+        <title>beeie node graph | areas</title>
+        <meta name="charset" content="UTF-8">
+        <link rel="stylesheet" href="/css/graphs.css">
+        <script src="/js/nodegraph.js"></script>
+    </head>
+    <body>
+        <canvas id="canvas" width="1000" height="500"></canvas>
+        <script>
+            const startGraph = data => {
+                let canvas = document.getElementById("canvas");
+                let graph = new NodeGraph(canvas, "white", data, true);
+                let last = null;
+
+                const update = timestamp => {
+                    if (!last) last = timestamp;
+                    let delta = timestamp - last;
+                    last = timestamp;
+                    graph.draw(delta);
+                    requestAnimationFrame(update);
+                }
+                
+                requestAnimationFrame(update);
+            }
+
+            startGraph({
+                nodes: [
+                    {x:  0, y:  0, name: "a"},
+                    {x: 50, y: 10, name: "b"}
+                ],
+                connections: [
+
+                ]
+            });
+
+            //fetch("/assets/versions.json")
+            //    .then(res => {
+            //        if (!res.ok) throw new Error(`the bee is not okay, http status: ${res.status}`);
+            //        return res.json();
+            //    })
+            //    .then(data => {
+            //        startGraph(data);
+            //    })
+            //    .catch(error => {
+            //        alert("there was an error, please check the console!");
+            //        console.error(error);
+            //    });
+        </script>
+    </body>
+</html>
