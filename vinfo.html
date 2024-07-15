@@ -35,7 +35,7 @@
             }
 
             if (search !== "") {
-                fetch(`/assets/version-${search.substring(1)}.json`)
+                fetch(`/assets/versions/version-${search.substring(1)}.json`)
                     .then(res => {
                         if (!res.ok) throw new Error(`the bee is not okay, http status: ${res.status}`);
                         return res.json()
