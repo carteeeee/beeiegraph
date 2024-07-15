@@ -29,9 +29,8 @@ class NodeGraph {
         this.nodes = [];
         data.nodes.forEach(node => {
             this.nodes.push(new Node(
-                //node.x,
-                //node.y,
-                0, 0,
+                node.x,
+                node.y,
                 node.name,
                 node.text,
                 node.link
@@ -92,7 +91,9 @@ class NodeGraph {
 
         if (this.lastMouseBtns === 1 && this.mouseBtns === 0) {
             if (Date.now() - this.dragStart < 100 && this.dragging === 2) {
-                window.location = this.nodes[this.draggingNode].link;
+                if (this.nodes[this.draggingNode].link) {
+                    window.location = this.nodes[this.draggingNode].link;
+                }
             }
 
             this.dragging = 0;
