@@ -24,6 +24,7 @@ class Camera extends Vector2d {
 class NodeGraph {
     constructor(canvas, backgroundColor, data, physics) {
         const ctx = canvas.getContext("2d");
+        this.canvas = canvas;
         this.ctx = ctx;
         this.nodes = [];
         data.nodes.forEach(node => {
@@ -50,11 +51,13 @@ class NodeGraph {
         this.fps = 0;
         this.dragging = 0;
         this.draggingNode = 0;
+        this.dragStart = 0;
         canvas.addEventListener("mousemove", this.mouseUpdate.bind(this), false);
         canvas.addEventListener("mouseenter", this.mouseUpdate.bind(this), false);
+        canvas.addEventListener("mousedown", this.mouseUpdate.bind(this), false);
+        canvas.addEventListener("mouseup", this.mouseUpdate.bind(this), false);
         canvas.addEventListener("mosuescroll", this.scrollEvent.bind(this), false);
         canvas.addEventListener("DOMMouseScroll", this.scrollEvent.bind(this), false);
-        canvas.addEventListener("mousedown", this.clickEvent.bind(this), false);
     }
     
     mouseUpdate(e) {
@@ -71,6 +74,8 @@ class NodeGraph {
             });
 
             if (this.dragging === 0) this.dragging = 1;
+
+            this.dragStart = Date.now();
         }
 
         if (this.lastMouseBtns === 1 && this.mouseBtns === 1) {
@@ -85,7 +90,13 @@ class NodeGraph {
             }
         }
 
-        if (this.lastMouseBtns === 1 && this.mouseBtns === 0) this.dragging = 0;
+        if (this.lastMouseBtns === 1 && this.mouseBtns === 0) {
+            if (Date.now() - this.dragStart < 100 && this.dragging === 2) {
+                window.location = this.nodes[this.draggingNode].link;
+            }
+
+            this.dragging = 0;
+        };
         
         this.lastMouseX = this.mouseX;
         this.lastMouseY = this.mouseY;
@@ -94,14 +105,6 @@ class NodeGraph {
 
     scrollEvent(e) {
         this.cam.zoom += this.cam.zoom / e.detail / 3;
-    }
-
-    clickEvent(e) {
-        //this.nodes.forEach(node => {
-        //    if (node.pointWithin(e.clientX, e.clientY, this.cam) && node.link) {
-        //        window.location = node.link;
-        //    }
-        //});
     }
 
     draw(delta) {
