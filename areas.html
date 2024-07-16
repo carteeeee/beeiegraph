@@ -9,6 +9,8 @@
     <body>
         <canvas id="canvas" width="1000" height="500"></canvas>
         <script>
+            let search = window.location.search;
+            
             const startGraph = data => {
                 let canvas = document.getElementById("canvas");
                 let graph = new NodeGraph(canvas, "white", data, true, true);
@@ -25,37 +27,42 @@
                 requestAnimationFrame(update);
             }
 
-            startGraph({
-                nodes: [
-                    {x: 0, y: 0, name: "a"},
-                    {x: 0, y: 0, name: "b"},
-                    {x: 0, y: 0, name: "c"},
-                    {x: 0, y: 0, name: "d"},
-                    {x: 0, y: 0, name: "e"},
-                    {x: 0, y: 0, name: "f"},
-                ],
-                connections: [
-                    [0, 1],
-                    [1, 2],
-                    [2, 3],
-                    [3, 4],
-                    [4, 5],
-                    [5, 0]
-                ]
-            });
+            //startGraph({
+            //    nodes: [
+            //        {x: 0, y: 0, name: "a"},
+            //        {x: 0, y: 0, name: "b"},
+            //        {x: 0, y: 0, name: "c"},
+            //        {x: 0, y: 0, name: "d"},
+            //        {x: 0, y: 0, name: "e"},
+            //        {x: 0, y: 0, name: "f"},
+            //    ],
+            //    connections: [
+            //        [0, 1],
+            //        [1, 2],
+            //        [2, 3],
+            //        [3, 4],
+            //        [4, 5],
+            //        [5, 0]
+            //    ]
+            //});
 
-            //fetch("/assets/versions.json")
-            //    .then(res => {
-            //        if (!res.ok) throw new Error(`the bee is not okay, http status: ${res.status}`);
-            //        return res.json();
-            //    })
-            //    .then(data => {
-            //        startGraph(data);
-            //    })
-            //    .catch(error => {
-            //        alert("there was an error, please check the console!");
-            //        console.error(error);
-            //    });
+            if (search !== "") {
+                fetch(`/assets/areas/version-${search.substring(1)}.json`)
+                    .then(res => {
+                        if (!res.ok) throw new Error(`the bee is not okay, http status: ${res.status}`);
+                        return res.json()
+                    })
+                    .then(json => {
+                        startGraph(json);
+                    })
+                    .catch(error => {
+                        alert("there was an error, please check the console!");
+                        console.error(error);
+                    });
+            } else {
+                alert("erm you need a search query");
+                console.error("no search query found");
+            }
         </script>
     </body>
 </html>

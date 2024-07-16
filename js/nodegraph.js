@@ -45,7 +45,7 @@ class NodeGraph {
         });
         this.connections = data.connections;
         this.bg = backgroundColor;
-        this.cam = new Camera(0, 0, 1);
+        this.cam = new Camera(-500, -250, 1);
         this.mouseX = 99999;
         this.mouseY = 99999;
         this.mouseBtns = 0;
@@ -234,8 +234,8 @@ class Node {
             if (this != node) {
                 let x = this.pos.x - node.pos.x;
                 let y = this.pos.y - node.pos.y;
-                if (x === 0) x = Math.random() * 1000 - 500;
-                if (y === 0) y = Math.random() * 1000 - 500;
+                if (x === 0) x = Math.random() * 100 - 50;
+                if (y === 0) y = Math.random() * 100 - 50;
                 let d = Math.sqrt(x*x + y*y);
                 let c = 0;
                 if (conns.indexOf(index) !== -1) {
