@@ -5,6 +5,13 @@ class Vector2d {
         this.x = x;
         this.y = y;
     }
+
+    center(v) {
+        return new Vector2d(
+            (this.x + v.x) / 2,
+            (this.y + v.y) / 2
+        )
+    }
 }
 
 class Camera extends Vector2d {
@@ -22,7 +29,7 @@ class Camera extends Vector2d {
 }
 
 class NodeGraph {
-    constructor(canvas, backgroundColor, data, physics) {
+    constructor(canvas, backgroundColor, data, physics, arrows) {
         const ctx = canvas.getContext("2d");
         this.canvas = canvas;
         this.ctx = ctx;
@@ -46,11 +53,13 @@ class NodeGraph {
         this.lastMouseY = 99999;
         this.lastMouseBtns = 0;
         this.physics = physics;
+        this.arrows = arrows;
         this.lastFPS = Date.now();
         this.fps = 0;
         this.dragging = 0;
         this.draggingNode = 0;
         this.dragStart = 0;
+        this.t = 0;
         canvas.addEventListener("mousemove", this.mouseUpdate.bind(this), false);
         canvas.addEventListener("mouseenter", this.mouseUpdate.bind(this), false);
         canvas.addEventListener("mousedown", this.mouseUpdate.bind(this), false);
@@ -112,10 +121,14 @@ class NodeGraph {
         let tooltip = null;
         this.ctx.fillStyle = this.bg;
         this.ctx.fillRect(0, 0, 1000, 500);
+        this.t += delta;
 
         this.connections.forEach(conn => {
-            let pos1 = this.cam.transform(this.nodes[conn[0]].pos);
-            let pos2 = this.cam.transform(this.nodes[conn[1]].pos);
+            let node1 = this.nodes[conn[0]];
+            let node2 = this.nodes[conn[1]];
+
+            let pos1 = this.cam.transform(node1.pos);
+            let pos2 = this.cam.transform(node2.pos);
 
             this.ctx.beginPath();
             this.ctx.strokeStyle = "#777";
@@ -123,6 +136,33 @@ class NodeGraph {
             this.ctx.moveTo(pos1.x, pos1.y);
             this.ctx.lineTo(pos2.x, pos2.y);
             this.ctx.stroke();
+
+            if (this.arrows) {
+                //let rad = (Math.PI / 180) * this.t / 5;
+                let rad = Math.atan2(node2.pos.x - node1.pos.x, node2.pos.y - node1.pos.y) + Math.PI*0.5;
+                let c = Math.cos(rad);
+                let s = Math.sin(rad);
+
+                let b = this.cam.zoom;
+                let cen = pos1.center(pos2);
+                let x = cen.x;
+                let y = cen.y;
+
+                this.ctx.beginPath();
+                this.ctx.fillStyle = "#777";
+
+                // this code *will* bite you if you touch it
+                this.ctx.moveTo(
+                    (c * -15)/b+x,
+                    (s * 15)/b+y);
+                this.ctx.lineTo(
+                    (c * 15 + s * 15)/b+x,
+                    (c * 15 - s * 15)/b+y);
+                this.ctx.lineTo(
+                    (c * 15 + s * -15)/b+x,
+                    (c * -15 - s * 15)/b+y);
+                this.ctx.fill();
+            }
         });
 
         if (this.physics) {

@@ -11,7 +11,7 @@
         <script>
             const startGraph = data => {
                 let canvas = document.getElementById("canvas");
-                let graph = new NodeGraph(canvas, "white", data, false);
+                let graph = new NodeGraph(canvas, "white", data, false, false);
                 let last = null;
 
                 const update = timestamp => {
