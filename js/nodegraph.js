@@ -29,7 +29,7 @@ class Camera extends Vector2d {
 }
 
 class NodeGraph {
-    constructor(canvas, backgroundColor, data, physics, arrows) {
+    constructor(canvas, backgroundColor, data, physics, arrows, editelem) {
         const ctx = canvas.getContext("2d");
         this.canvas = canvas;
         this.ctx = ctx;
@@ -45,6 +45,13 @@ class NodeGraph {
         });
         this.connections = data.connections;
         this.bg = backgroundColor;
+        this.physics = physics;
+        this.arrows = arrows;
+        this.editbtn = editelem[0];
+        this.editresult = editelem[1];
+        this.dataelem = editelem.slice(2, editelem.length);
+        if (editbtn) editbtn.addEventListener("click", this.editPressed.bind(this), false);
+
         this.cam = new Camera(-500, -250, 1);
         this.mouseX = 99999;
         this.mouseY = 99999;
@@ -52,14 +59,13 @@ class NodeGraph {
         this.lastMouseX = 99999;
         this.lastMouseY = 99999;
         this.lastMouseBtns = 0;
-        this.physics = physics;
-        this.arrows = arrows;
         this.lastFPS = Date.now();
         this.fps = 0;
         this.dragging = 0;
         this.draggingNode = 0;
         this.dragStart = 0;
         this.t = 0;
+        this.editing = false;
         canvas.addEventListener("mousemove", this.mouseUpdate.bind(this), false);
         canvas.addEventListener("mouseenter", this.mouseUpdate.bind(this), false);
         canvas.addEventListener("mousedown", this.mouseUpdate.bind(this), false);
@@ -100,8 +106,15 @@ class NodeGraph {
 
         if (this.lastMouseBtns === 1 && this.mouseBtns === 0) {
             if (Date.now() - this.dragStart < 100 && this.dragging === 2) {
-                if (this.nodes[this.draggingNode].link) {
-                    window.location = this.nodes[this.draggingNode].link;
+                let dragged = this.nodes[this.draggingNode];
+                if (dragged.link) {
+                    if (this.editing) {
+                        this.dataelem[0].value = dragged.pos.x;
+                        this.dataelem[1].value = dragged.pos.y;
+                        this.dataelem[2].value = dragged.name;
+                        this.dataelem[3].value = dragged.tooltip;
+                        this.dataelem[4].value = dragged.link;
+                    } else window.location = dragged.link;
                 }
             }
 
@@ -115,6 +128,18 @@ class NodeGraph {
 
     scrollEvent(e) {
         this.cam.zoom += this.cam.zoom / e.detail / 3;
+    }
+
+    editPressed(e) {
+        if (!this.editing) {
+            this.editing = true;
+            this.editbtn.innerText = "finish";
+        } else {
+            this.editing = false;
+            this.editbtn.innerText = "edit";
+            this.editresult.innerText = "placeholder";
+            this.editresult.classList.remove("hidden");
+        }
     }
 
     draw(delta) {

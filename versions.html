@@ -3,39 +3,88 @@
     <head>
         <title>beeie node graph | versions</title>
         <meta name="charset" content="UTF-8">
+        <link rel="stylesheet" href="/css/main.css">
         <link rel="stylesheet" href="/css/graphs.css">
         <script src="/js/nodegraph.js"></script>
     </head>
     <body>
-        <canvas id="canvas" width="1000" height="500"></canvas>
+        <canvas id="canvas" width="1000" height="500"></canvas><br>
+        <button id="editbtn">edit</button><br>
+        <textarea readonly="true" id="editresult" class="hidden"></textarea><br><br>
+        <table>
+            <tr>
+                <th>Attribute</th>
+                <th>Data</th>
+            </tr>
+            <tr>
+                <td>X Position</td>
+                <td><input type="text" id="xpos"></td>
+            </tr>
+            <tr>
+                <td>Y Position</td>
+                <td><input type="text" id="ypos"></td>
+            </tr>
+            <tr>
+                <td>Name</td>
+                <td><input type="text" id="name"></td>
+            </tr>
+            <tr>
+                <td>Text</td>
+                <td><input type="text" id="text"></td>
+            </tr>
+            <tr>
+                <td>Link</td>
+                <td><input type="text" id="link"></td>
+            </tr>
+        </table>
+        </table>
         <script>
             const startGraph = data => {
-                let canvas = document.getElementById("canvas");
-                let graph = new NodeGraph(canvas, "white", data, false, false);
-                let last = null;
+                let canvas = document.getElementById("canvas");         // get the main canvas
+                let editbtn = document.getElementById("editbtn");       // get the edit button
+                let editresult = document.getElementById("editresult"); // get the edit result textarea
+                let xpos = document.getElementById("xpos");             // x position 
+                let ypos = document.getElementById("ypos");             // y position
+                let name = document.getElementById("name");             // name
+                let text = document.getElementById("text");             // text
+                let link = document.getElementById("link");             // link
+                let graph = new NodeGraph(
+                    canvas,
+                    "white",
+                    data,
+                    false,
+                    true,
+                    [editbtn,
+                        editresult,
+                        xpos,
+                        ypos,
+                        name,
+                        text,
+                        link]);                                         // make the graph!
+                let last = null;                                        // last time ran
 
-                const update = timestamp => {
-                    if (!last) last = timestamp;
-                    let delta = timestamp - last;
-                    last = timestamp;
-                    graph.draw(delta);
-                    requestAnimationFrame(update);
+                const update = timestamp => {      // update graph function
+                    if (!last) last = timestamp;   // make new last timestamp if he doesnt exist
+                    let delta = timestamp - last;  // calculate delta
+                    last = timestamp;              // set last again
+                    graph.draw(delta);             // draw the thing!
+                    requestAnimationFrame(update); // queue up another frame
                 }
                 
-                requestAnimationFrame(update);
+                requestAnimationFrame(update);     // start everything
             }
 
-            fetch("/assets/versions.json")
-                .then(res => {
-                    if (!res.ok) throw new Error(`the bee is not okay, http status: ${res.status}`);
-                    return res.json();
+            fetch("/assets/versions.json")                                                           // get the data
+                .then(res => {                                                                       // when we have the data
+                    if (!res.ok) throw new Error(`the bee is not okay, http status: ${res.status}`); // error!
+                    return res.json();                                                               // return jsonified version
                 })
-                .then(data => {
-                    startGraph(data);
+                .then(data => {       // when the buffer is fully read and jsonified
+                    startGraph(data); // we start the graph and give it the data
                 })
-                .catch(error => {
-                    alert("there was an error, please check the console!");
-                    console.error(error);
+                .catch(error => {                                           // check any errors
+                    alert("there was an error, please check the console!"); // and report them back!
+                    console.error(error);                                   // also send them to the console
                 });
         </script>
     </body>

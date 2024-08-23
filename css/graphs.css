@@ -6,3 +6,7 @@
 #canvas {
     border: black solid 3px;
 }
+
+table, th, td {
+    border: black solid 1px;
+}
