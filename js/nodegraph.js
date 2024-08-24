@@ -29,7 +29,7 @@ class Camera extends Vector2d {
 }
 
 class NodeGraph {
-    constructor(canvas, backgroundColor, data, physics, arrows, editelem) {
+    constructor(canvas, backgroundColor, data, physics, arrows, editElem) {
         const ctx = canvas.getContext("2d");
         this.canvas = canvas;
         this.ctx = ctx;
@@ -47,10 +47,15 @@ class NodeGraph {
         this.bg = backgroundColor;
         this.physics = physics;
         this.arrows = arrows;
-        this.editbtn = editelem[0];
-        this.editresult = editelem[1];
-        this.dataelem = editelem.slice(2, editelem.length);
-        if (editbtn) editbtn.addEventListener("click", this.editPressed.bind(this), false);
+        this.editBtn = editElem[0];
+        this.connBtn = editElem[1];
+        this.newBtn = editElem[2];
+        this.editResult = editElem[3];
+        this.editTable = editElem[4];
+        this.dataElem = editElem.slice(5, editElem.length);
+        if (this.editBtn) this.editBtn.addEventListener("click", this.editPressed.bind(this), false);
+        if (this.connBtn) this.connBtn.addEventListener("click", (e=>{this.setConnecting(!this.connecting)}).bind(this), false);
+        if (this.newBtn) this.newBtn.addEventListener("click", this.newPressed.bind(this), false);
 
         this.cam = new Camera(-500, -250, 1);
         this.mouseX = 99999;
@@ -66,6 +71,9 @@ class NodeGraph {
         this.dragStart = 0;
         this.t = 0;
         this.editing = false;
+        this.editingNode = -1;
+        this.connecting = false;
+        this.connectingNode = -1;
         canvas.addEventListener("mousemove", this.mouseUpdate.bind(this), false);
         canvas.addEventListener("mouseenter", this.mouseUpdate.bind(this), false);
         canvas.addEventListener("mousedown", this.mouseUpdate.bind(this), false);
@@ -107,15 +115,17 @@ class NodeGraph {
         if (this.lastMouseBtns === 1 && this.mouseBtns === 0) {
             if (Date.now() - this.dragStart < 100 && this.dragging === 2) {
                 let dragged = this.nodes[this.draggingNode];
-                if (dragged.link) {
-                    if (this.editing) {
-                        this.dataelem[0].value = dragged.pos.x;
-                        this.dataelem[1].value = dragged.pos.y;
-                        this.dataelem[2].value = dragged.name;
-                        this.dataelem[3].value = dragged.tooltip;
-                        this.dataelem[4].value = dragged.link;
-                    } else window.location = dragged.link;
+                if (this.connecting) {
+                    if (this.connectingNode !== -1) {
+                        this.connections.push([this.connectingNode, this.draggingNode]);
+                        this.connectingNode = -1;
+                        this.setConnecting(false);
+                    } else {
+                        this.connectingNode = this.draggingNode;
+                    }
                 }
+                else if (this.editing) this.editingNode = this.draggingNode==this.editingNode ? -1 : this.draggingNode;
+                else if (dragged.link) window.location = dragged.link;
             }
 
             this.dragging = 0;
@@ -133,13 +143,51 @@ class NodeGraph {
     editPressed(e) {
         if (!this.editing) {
             this.editing = true;
-            this.editbtn.innerText = "finish";
+            this.editBtn.innerText = "finish";
+            this.editTable.classList.remove("hidden");
+            this.connBtn.classList.remove("hidden");
+            this.newBtn.classList.remove("hidden");
         } else {
             this.editing = false;
-            this.editbtn.innerText = "edit";
-            this.editresult.innerText = "placeholder";
-            this.editresult.classList.remove("hidden");
+            this.connecting = false;
+            this.editBtn.innerText = "edit";
+            this.editTable.classList.add("hidden");
+            this.connBtn.classList.add("hidden");
+            this.newBtn.classList.add("hidden");
+            
+            let jsonData = {nodes: [], connections: this.connections};
+            this.nodes.forEach(node => {
+                let nodeData = {x: node.pos.x, y: node.pos.y};
+                if (node.name) nodeData.name = node.name;
+                if (node.tooltip) nodeData.text = node.tooltip;
+                if (node.link) nodeData.link = node.link;
+                jsonData.nodes.push(nodeData);
+            });
+
+            this.editResult.innerText = JSON.stringify(jsonData);
+
+
+            this.editResult.classList.remove("hidden");
         }
+    }
+
+    newPressed(e) {
+        if (this.editing) {
+            this.nodes.push(new Node(
+                (this.cam.x + 500) * this.cam.zoom,
+                (this.cam.y + 250) * this.cam.zoom,
+                "",
+                "",
+                ""
+            ));
+            this.editingNode = this.nodes.length - 1;
+        }
+    }
+
+    setConnecting(newValue) {
+        this.connecting = newValue;
+        if (!newValue) this.connectingNode = -1;
+        this.connBtn.innerText = this.connecting ? "cancel connection" : "start connection";
     }
 
     draw(delta) {
@@ -206,7 +254,7 @@ class NodeGraph {
 
         this.nodes.forEach((node, index) => {
             if (!(this.dragging === 2 && this.draggingNode === index)) node.move(delta);
-            node.draw(this.ctx, this.cam);
+            node.draw(this.ctx, this.cam, (index===this.editingNode && this.editing) || (index===this.connectingNode && this.connecting));
             if (node.pointWithin(this.mouseX, this.mouseY, this.cam)) tooltip = node.tooltip;
         });
 
@@ -225,7 +273,23 @@ class NodeGraph {
             this.ctx.fillStyle = "black";
             this.ctx.fillText(tooltip, this.mouseX + 8, this.mouseY + 14);
         }
- 
+
+        if (this.editing && this.editingNode != -1) {
+            let edited = this.nodes[this.editingNode];
+            if (document.activeElement !== this.dataElem[0]) this.dataElem[0].value = edited.pos.x;
+            else edited.pos.x = parseFloat(this.dataElem[0].value);
+            if (document.activeElement !== this.dataElem[1]) this.dataElem[1].value = edited.pos.y;
+            else edited.pos.y = parseFloat(this.dataElem[1].value);
+            if (document.activeElement !== this.dataElem[2]) this.dataElem[2].value = edited.name;
+            else edited.name = this.dataElem[2].value;
+            if (document.activeElement !== this.dataElem[3]) this.dataElem[3].value = edited.tooltip;
+            else edited.tooltip = this.dataElem[3].value;
+            if (document.activeElement !== this.dataElem[4]) this.dataElem[4].value = edited.link;
+            else edited.link = this.dataElem[4].value;
+        } else {
+            this.dataElem.forEach(e => {e.value = ""});
+        } 
+
         if (this.lastFPS < Date.now() - 100) {
             this.fps = 1000 / delta;
             this.lastFPS = Date.now();
@@ -281,13 +345,13 @@ class Node {
         this.pos.y += this.velocityY * delta;
     }
 
-    draw(ctx, camera) { 
+    draw(ctx, camera, selected) { 
         let newpos = camera.transform(this.pos);
 
         ctx.beginPath();
-        ctx.strokeStyle = "black";
+        ctx.strokeStyle = selected ? "grey" : "black";
         ctx.fillStyle = "white";
-        ctx.lineWidth = 4 / camera.zoom;
+        ctx.lineWidth = (selected ? 5 : 4) / camera.zoom;
         ctx.arc(newpos.x, newpos.y, this.radius / camera.zoom, 0, 2 * Math.PI);
         ctx.fill();
         ctx.stroke();
