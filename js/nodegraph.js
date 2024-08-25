@@ -63,11 +63,33 @@ class GraphData {
         
 
         return new this(null, data, nodesInternal, connectionsInternal);
+    }*/
+
+    toJSON() {
+        let jsonData = {nodes: [], connections: this.connections};
+        this.nodes.forEach(node => {
+            let nodeData = {x: node.pos.x, y: node.pos.y};
+            if (node.name) nodeData.name = node.name;
+            if (node.tooltip) nodeData.text = node.tooltip;
+            if (node.link) nodeData.link = node.link;
+            jsonData.nodes.push(nodeData);
+        });
+
+        return JSON.stringify(jsonData);
     }
 
     toBee() {
-        
-    }*/
+        let result = "";
+        result += "### BEGIN NODES ###\n";
+        this.nodes.forEach(node => {
+            result += `${node.pos.x}|${node.pos.y}|${node.name}|${node.tooltip}|${node.link}\n`;
+        });
+        result += "### BEGIN CONNECTIONS ###\n";
+        this.connections.forEach(conn => {
+            result += `${conn[0]}|${conn[1]}\n`;
+        });
+        return result;
+    }
 }
 
 class NodeGraph {
@@ -108,6 +130,14 @@ class NodeGraph {
 
     get connections() {
         return this.data.connections;
+    }
+
+    get jsonData() {
+        return this.data.toJSON();
+    }
+
+    get beeData() {
+        return this.data.toBee();
     }
 
     constructor(canvas, backgroundColor, data, physics, arrows, editElem) {
@@ -213,19 +243,9 @@ class NodeGraph {
             this.connBtn.classList.add("hidden");
             this.newBtn.classList.add("hidden");
             
-            let jsonData = {nodes: [], connections: this.connections};
-            this.nodes.forEach(node => {
-                let nodeData = {x: node.pos.x, y: node.pos.y};
-                if (node.name) nodeData.name = node.name;
-                if (node.tooltip) nodeData.text = node.tooltip;
-                if (node.link) nodeData.link = node.link;
-                jsonData.nodes.push(nodeData);
-            });
-
-            let r = JSON.stringify(jsonData);
+            let r = this.beeData;
             console.log(r)
-            this.editResult.innerText = r;
-
+            this.editResult.innerHTML = r;
 
             this.editResult.classList.remove("hidden");
         }
