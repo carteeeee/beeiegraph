@@ -28,14 +28,26 @@ class Camera extends Vector2d {
     }
 }
 
-class NodeGraph {
-    constructor(canvas, backgroundColor, data, physics, arrows, editElem) {
-        const ctx = canvas.getContext("2d");
-        this.canvas = canvas;
-        this.ctx = ctx;
-        this.nodes = [];
+class GraphData {
+    // private
+    #jsondata;
+    #beedata;
+
+    // public
+    nodes = [];
+    connections = [];
+
+    constructor(jsondata, beedata, nodes, connections) {
+        this.jsondata = jsondata;
+        this.beedata = beedata;
+        this.nodes = nodes;
+        this.connections = connections;
+    }
+
+    static fromJSON(data) {
+        let nodesInternal = [];
         data.nodes.forEach(node => {
-            this.nodes.push(new Node(
+            nodesInternal.push(new Node(
                 node.x,
                 node.y,
                 node.name,
@@ -43,7 +55,67 @@ class NodeGraph {
                 node.link
             ));
         });
-        this.connections = data.connections;
+        
+        return new this(data, null, nodesInternal, data.connections);
+    }
+
+    /*static fromBee(data) {
+        
+
+        return new this(null, data, nodesInternal, connectionsInternal);
+    }
+
+    toBee() {
+        
+    }*/
+}
+
+class NodeGraph {
+    // private
+    #canvas;
+    #ctx;
+    #data;
+    #editBtn;
+    #connBtn;
+    #newBtn;
+    #editResult;
+    #editTable;
+    #dataElem;
+    #mouseX = 99999;
+    #mouseY = 99999;
+    #mouseBtns = 0;
+    #lastMouseX = 99999;
+    #lastMouseY = 99999;
+    #lastMouseBtns = 0;
+    #lastFPS = 0;
+    #dragging = 0;
+    #draggingNode = 0;
+    #dragStart = 0;
+    #editing = false;
+    #connecting = false;
+
+    // public
+    connectingNode = -1;
+    editingNode = -1;
+    physics = false;
+    arrows = false;
+    fps = 0;
+    cam;
+
+    get nodes() {
+        return this.data.nodes;
+    }
+
+    get connections() {
+        return this.data.connections;
+    }
+
+    constructor(canvas, backgroundColor, data, physics, arrows, editElem) {
+        const ctx = canvas.getContext("2d");
+        this.canvas = canvas;
+        this.ctx = ctx;
+        this.data = data;
+
         this.bg = backgroundColor;
         this.physics = physics;
         this.arrows = arrows;
@@ -53,27 +125,13 @@ class NodeGraph {
         this.editResult = editElem[3];
         this.editTable = editElem[4];
         this.dataElem = editElem.slice(5, editElem.length);
+        this.cam = new Camera(-500, -250, 1);
+        this.lastFPS = Date.now();
+        
         if (this.editBtn) this.editBtn.addEventListener("click", this.editPressed.bind(this), false);
         if (this.connBtn) this.connBtn.addEventListener("click", (e=>{this.setConnecting(!this.connecting)}).bind(this), false);
         if (this.newBtn) this.newBtn.addEventListener("click", this.newPressed.bind(this), false);
 
-        this.cam = new Camera(-500, -250, 1);
-        this.mouseX = 99999;
-        this.mouseY = 99999;
-        this.mouseBtns = 0;
-        this.lastMouseX = 99999;
-        this.lastMouseY = 99999;
-        this.lastMouseBtns = 0;
-        this.lastFPS = Date.now();
-        this.fps = 0;
-        this.dragging = 0;
-        this.draggingNode = 0;
-        this.dragStart = 0;
-        this.t = 0;
-        this.editing = false;
-        this.editingNode = -1;
-        this.connecting = false;
-        this.connectingNode = -1;
         canvas.addEventListener("mousemove", this.mouseUpdate.bind(this), false);
         canvas.addEventListener("mouseenter", this.mouseUpdate.bind(this), false);
         canvas.addEventListener("mousedown", this.mouseUpdate.bind(this), false);
@@ -164,7 +222,9 @@ class NodeGraph {
                 jsonData.nodes.push(nodeData);
             });
 
-            this.editResult.innerText = JSON.stringify(jsonData);
+            let r = JSON.stringify(jsonData);
+            console.log(r)
+            this.editResult.innerText = r;
 
 
             this.editResult.classList.remove("hidden");

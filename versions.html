@@ -42,6 +42,8 @@
         </table>
         <script>
             const startGraph = data => {
+                let gdata = GraphData.fromJSON(data);
+
                 let canvas = document.getElementById("canvas");         // get the main canvas
                 let editbtn = document.getElementById("editbtn");       // get the edit button
                 let connbtn = document.getElementById("connbtn");       // get the connection button
@@ -56,7 +58,7 @@
                 let graph = new NodeGraph(
                     canvas,
                     "white",
-                    data,
+                    gdata,
                     false,
                     true,
                     [editbtn,
