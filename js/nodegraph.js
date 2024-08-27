@@ -29,11 +29,6 @@ class Camera extends Vector2d {
 }
 
 class GraphData {
-    // private
-    #jsondata;
-    #beedata;
-
-    // public
     nodes = [];
     connections = [];
 
@@ -59,11 +54,53 @@ class GraphData {
         return new this(data, null, nodesInternal, data.connections);
     }
 
-    /*static fromBee(data) {
-        
+    static fromBee(data) {
+        let nodesInternal = [];
+        let connectionsInternal = [];
+        let curLine = "";
+        let state = 0;
+        for (var i=0; i<data.length; i++) {
+            let c = data[i]
+            if (c == "\n") {
+                switch (state) {
+                    case 0:
+                        if (curLine.includes("### BEGIN NODES ###")) state = 1;
+                        break;
+                    case 1:
+                        if (curLine.includes("### BEGIN CONNECTIONS ###")) {
+                            state = 2;
+                            break;
+                        }
+                        console.log(curLine);
+                        let node = curLine.replaceAll("\r", "").split("|");
+                        nodesInternal.push(new Node(
+                            parseFloat(node[0]) ?? 0,
+                            parseFloat(node[1]) ?? 0,
+                            node[2] ?? "",
+                            node[3] ?? "",
+                            node[4] ?? ""
+                        ));
+                        break;
+                    case 2:
+                        if (curLine.includes("### END BEE ###")) {
+                            state = 3;
+                            break;
+                        }
+                        console.log(curLine);
+                        connectionsInternal.push(curLine.replaceAll("\r", "").split("|"));
+                        break;
+                    case 3:
+                        break;
+                }
+
+                curLine = "";
+            } else {
+                curLine += c;
+            }
+        }
 
         return new this(null, data, nodesInternal, connectionsInternal);
-    }*/
+    }
 
     toJSON() {
         let jsonData = {nodes: [], connections: this.connections};
@@ -88,41 +125,29 @@ class GraphData {
         this.connections.forEach(conn => {
             result += `${conn[0]}|${conn[1]}\n`;
         });
+        result += "### END BEE ###\n";
         return result;
     }
 }
 
 class NodeGraph {
-    // private
-    #canvas;
-    #ctx;
-    #data;
-    #editBtn;
-    #connBtn;
-    #newBtn;
-    #editResult;
-    #editTable;
-    #dataElem;
-    #mouseX = 99999;
-    #mouseY = 99999;
-    #mouseBtns = 0;
-    #lastMouseX = 99999;
-    #lastMouseY = 99999;
-    #lastMouseBtns = 0;
-    #lastFPS = 0;
-    #dragging = 0;
-    #draggingNode = 0;
-    #dragStart = 0;
-    #editing = false;
-    #connecting = false;
-
-    // public
+    mouseX = 99999;
+    mouseY = 99999;
+    mouseBtns = 0;
+    lastMouseX = 99999;
+    lastMouseY = 99999;
+    lastMouseBtns = 0;
+    lastFPS = 0;
+    dragging = 0;
+    draggingNode = 0;
+    dragStart = 0;
+    editing = false;
+    connecting = false;
     connectingNode = -1;
     editingNode = -1;
     physics = false;
     arrows = false;
     fps = 0;
-    cam;
 
     get nodes() {
         return this.data.nodes;

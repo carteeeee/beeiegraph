@@ -43,7 +43,100 @@
         <script>
             const startGraph = data => {
                 let gdata = GraphData.fromJSON(data);
-
+                /*let gdata = GraphData.fromBee(`### BEGIN NODES ###
+0|0|0.1|official, lost|/vinfo.html?1
+0|100|B991B|unofficial, joke|/vinfo.html?B9
+100|0|0.2|official, leaked|/vinfo.html?2
+200|-100|0.2.B|unofficial, upcoming|/vinfo.html?2B
+200|0|0.2.5|official, leaked|/vinfo.html?25
+300|0|0.3|official, leaked|/vinfo.html?3
+400|0|0.4|official|/vinfo.html?4
+500|100|COOP 0.4|unofficial, upcoming|/vinfo.html?C4
+500|0|0.5.6|official, leaked|/vinfo.html?56
+600|0|0.6|official, lost|/vinfo.html?6
+700|-50|0.6.1 M|official|/vinfo.html?61
+700|50|0.6.1 L|official|/vinfo.html?61
+800|-50|0.6.2 M|official|/vinfo.html?62
+800|50|0.6.2 L|official|/vinfo.html?62
+900|-50|0.6.3 M|official|/vinfo.html?63
+900|50|0.6.3 L|official|/vinfo.html?63
+1000|-50|0.6.4 M|official|/vinfo.html?64
+1000|50|0.6.4 L|official|/vinfo.html?64
+1100|-50|0.6.5 M|official|/vinfo.html?65
+1100|50|0.6.5 L|official|/vinfo.html?65
+1200|-50|0.6.6 M|official|/vinfo.html?66
+1200|50|0.6.6 L|official|/vinfo.html?66
+1300|-50|0.6.7 M|official|/vinfo.html?67
+1300|50|0.6.7 L|official|/vinfo.html?67
+1400|-50|0.6.8 M|official|/vinfo.html?68
+1400|50|0.6.8 L|official|/vinfo.html?68
+1500|150|0.6.8 yaha|unofficial, lost, joke|/vinfo.html?68Y
+1500|-50|0.6.9 M|official|/vinfo.html?69
+1500|50|0.6.9 L|official|/vinfo.html?69
+1600|0|0.6.9.7|official, leak|/vinfo.html?697
+1780|-100|E3313|official, leak|/vinfo.html?E3
+1620|100|COOP 0.7|unofficial|/vinfo.html?C7
+1700|0|0.7|official|/vinfo.html?7
+1780|100|0.7 chungus|official, joke|/vinfo.html?7C
+1800|0|0.8|official, leak|/vinfo.html?8
+1900|0|feb. leak|official, leak|/vinfo.html?FL
+2000|0|0.9|official (abandoned)|/vinfo.html?9
+2100|-150|B700|unofficial|/vinfo.html?B7
+2100|-50|1.0|official|/vinfo.html?0
+2100|50|1.0 UA|unofficial|/vinfo.html?UA
+2200|-50|1.0.1|official|/vinfo.html?11
+2200|50|UA A1|unofficial|/vinfo.html?A1
+2300|-50|1.0.2|official|/vinfo.html?12
+2300|50|UA A2|unofficial|/vinfo.html?A2
+2400|50|UA A3|unofficial, upcoming|/vinfo.html?A3
+1750|200|B13|official, demo|/vinfo.html?B13
+1880|200|motos factory|official, demo|/vinfo.html?MF
+### BEGIN CONNECTIONS ###
+0|2
+2|3
+2|4
+4|5
+5|6
+6|7
+6|8
+8|9
+9|10
+9|11
+10|12
+11|13
+12|14
+13|15
+14|16
+15|17
+16|18
+17|19
+18|20
+19|21
+20|22
+21|23
+22|24
+23|25
+25|26
+24|27
+25|28
+27|29
+28|29
+32|30
+29|32
+32|31
+32|33
+32|34
+34|35
+35|36
+36|37
+36|38
+36|39
+38|40
+39|41
+40|42
+41|43
+43|44
+### END BEE ###`);*/
                 let canvas = document.getElementById("canvas");         // get the main canvas
                 let editbtn = document.getElementById("editbtn");       // get the edit button
                 let connbtn = document.getElementById("connbtn");       // get the connection button
