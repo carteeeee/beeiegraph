@@ -1,4 +1,6 @@
 // node graph library made by me (carter)
+const LINK_COLOR = "#777";
+const LINK_WIDTH = 4;
 
 class Vector2d {
     constructor(x, y) {
@@ -45,6 +47,7 @@ class GraphData {
             nodesInternal.push(new Node(
                 node.x,
                 node.y,
+                30,
                 node.name,
                 node.text,
                 node.link
@@ -76,9 +79,10 @@ class GraphData {
                         nodesInternal.push(new Node(
                             parseFloat(node[0]) ?? 0,
                             parseFloat(node[1]) ?? 0,
-                            node[2] ?? "",
+                            parseInt(node[2]) ?? 30,
                             node[3] ?? "",
-                            node[4] ?? ""
+                            node[4] ?? "",
+                            node[5] ?? ""
                         ));
                         break;
                     case 2:
@@ -105,8 +109,7 @@ class GraphData {
     toJSON() {
         let jsonData = {nodes: [], connections: this.connections};
         this.nodes.forEach(node => {
-            let nodeData = {x: node.pos.x, y: node.pos.y};
-            if (node.name) nodeData.name = node.name;
+            let nodeData = {x: node.pos.x, y: node.pos.y, radius: node.radius, name: node.name};
             if (node.tooltip) nodeData.text = node.tooltip;
             if (node.link) nodeData.link = node.link;
             jsonData.nodes.push(nodeData);
@@ -119,7 +122,7 @@ class GraphData {
         let result = "";
         result += "### BEGIN NODES ###\n";
         this.nodes.forEach(node => {
-            result += `${node.pos.x}|${node.pos.y}|${node.name}|${node.tooltip}|${node.link}\n`;
+            result += `${node.pos.x}|${node.pos.y}|${node.radius}|${node.name}|${node.tooltip}|${node.link}\n`;
         });
         result += "### BEGIN CONNECTIONS ###\n";
         this.connections.forEach(conn => {
@@ -176,10 +179,11 @@ class NodeGraph {
         this.arrows = arrows;
         this.editBtn = editElem[0];
         this.connBtn = editElem[1];
-        this.newBtn = editElem[2];
-        this.editResult = editElem[3];
-        this.editTable = editElem[4];
-        this.dataElem = editElem.slice(5, editElem.length);
+        this.rcBtn = editElem[2];
+        this.newBtn = editElem[3];
+        this.editResult = editElem[4];
+        this.editTable = editElem[5];
+        this.dataElem = editElem.slice(6, editElem.length);
         this.cam = new Camera(-500, -250, 1);
         this.lastFPS = Date.now();
         
@@ -305,12 +309,14 @@ class NodeGraph {
             let node1 = this.nodes[conn[0]];
             let node2 = this.nodes[conn[1]];
 
-            let pos1 = this.cam.transform(node1.pos);
-            let pos2 = this.cam.transform(node2.pos);
+            let unt1 = node1.pos;
+            let unt2 = node2.pos;
+            let pos1 = this.cam.transform(unt1);
+            let pos2 = this.cam.transform(unt2);
 
             this.ctx.beginPath();
-            this.ctx.strokeStyle = "#777";
-            this.ctx.lineWidth = 4 / this.cam.zoom;
+            this.ctx.strokeStyle = LINK_COLOR;
+            this.ctx.lineWidth = LINK_WIDTH / this.cam.zoom;
             this.ctx.moveTo(pos1.x, pos1.y);
             this.ctx.lineTo(pos2.x, pos2.y);
             this.ctx.stroke();
@@ -325,21 +331,30 @@ class NodeGraph {
                 let cen = pos1.center(pos2);
                 let x = cen.x;
                 let y = cen.y;
+                let size = Math.max(Math.min(
+                    ((unt2.x - unt1.x) ** 2 + (unt2.y - unt1.y) ** 2)
+                        ** 0.5 * 0.07, 25), 10); // meth
 
                 this.ctx.beginPath();
-                this.ctx.fillStyle = "#777";
+                this.ctx.fillStyle = this.backgroundColor;
+                this.ctx.strokeStyle = LINK_COLOR;
+                this.ctx.lineWidth = LINK_WIDTH / this.cam.zoom;
 
                 // this code *will* bite you if you touch it
                 this.ctx.moveTo(
-                    (c * -15)/b+x,
-                    (s * 15)/b+y);
+                    (c * -size)/b+x,
+                    (s * size)/b+y);
                 this.ctx.lineTo(
-                    (c * 15 + s * 15)/b+x,
-                    (c * 15 - s * 15)/b+y);
+                    (c * size + s * size)/b+x,
+                    (c * size - s * size)/b+y);
                 this.ctx.lineTo(
-                    (c * 15 + s * -15)/b+x,
-                    (c * -15 - s * 15)/b+y);
+                    (c * size + s * -size)/b+x,
+                    (c * -size - s * size)/b+y);
+                this.ctx.lineTo(
+                    (c * -size)/b+x,
+                    (s * size)/b+y);
                 this.ctx.fill();
+                this.ctx.stroke();
             }
         });
 
@@ -385,12 +400,14 @@ class NodeGraph {
             else edited.pos.x = parseFloat(this.dataElem[0].value);
             if (document.activeElement !== this.dataElem[1]) this.dataElem[1].value = edited.pos.y;
             else edited.pos.y = parseFloat(this.dataElem[1].value);
-            if (document.activeElement !== this.dataElem[2]) this.dataElem[2].value = edited.name;
-            else edited.name = this.dataElem[2].value;
-            if (document.activeElement !== this.dataElem[3]) this.dataElem[3].value = edited.tooltip;
-            else edited.tooltip = this.dataElem[3].value;
-            if (document.activeElement !== this.dataElem[4]) this.dataElem[4].value = edited.link;
-            else edited.link = this.dataElem[4].value;
+            if (document.activeElement !== this.dataElem[2]) this.dataElem[2].value = edited.radius;
+            else edited.radius = parseFloat(this.dataElem[2].value);
+            if (document.activeElement !== this.dataElem[3]) this.dataElem[3].value = edited.name;
+            else edited.name = this.dataElem[3].value;
+            if (document.activeElement !== this.dataElem[4]) this.dataElem[4].value = edited.tooltip;
+            else edited.tooltip = this.dataElem[4].value;
+            if (document.activeElement !== this.dataElem[5]) this.dataElem[5].value = edited.link;
+            else edited.link = this.dataElem[5].value;
         } else {
             this.dataElem.forEach(e => {e.value = ""});
         } 
@@ -409,15 +426,16 @@ class NodeGraph {
 }
 
 class Node {
-    constructor(x, y, name, tooltip, link) {
+    velocityX = 0;
+    velocityY = 0;
+    tooltip = null;
+    link = null;
+
+    constructor(x, y, radius, name, tooltip, link) {
         this.pos = new Vector2d(x, y);
-        this.radius = 30;
+        this.radius = radius;
         this.name = name;
-        this.velocityX = 0;
-        this.velocityY = 0;
-        this.tooltip = null;
         if (tooltip) this.tooltip = tooltip;
-        this.link = null;
         if (link) this.link = link;
     }
 
