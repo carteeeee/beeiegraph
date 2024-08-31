@@ -49,6 +49,7 @@ class GraphData {
                 node.y,
                 30,
                 node.name,
+                false,
                 node.text,
                 node.link
             ));
@@ -81,8 +82,9 @@ class GraphData {
                             parseFloat(node[1]) ?? 0,
                             parseInt(node[2]) ?? 30,
                             node[3] ?? "",
-                            node[4] ?? "",
-                            node[5] ?? ""
+                            node[4] == "false" ? false : true,
+                            node[5] ?? "",
+                            node[6] ?? ""
                         ));
                         break;
                     case 2:
@@ -109,7 +111,7 @@ class GraphData {
     toJSON() {
         let jsonData = {nodes: [], connections: this.connections};
         this.nodes.forEach(node => {
-            let nodeData = {x: node.pos.x, y: node.pos.y, radius: node.radius, name: node.name};
+            let nodeData = {x: node.pos.x, y: node.pos.y, radius: node.radius, name: node.name, right: node.right};
             if (node.tooltip) nodeData.text = node.tooltip;
             if (node.link) nodeData.link = node.link;
             jsonData.nodes.push(nodeData);
@@ -122,7 +124,7 @@ class GraphData {
         let result = "";
         result += "### BEGIN NODES ###\n";
         this.nodes.forEach(node => {
-            result += `${node.pos.x}|${node.pos.y}|${node.radius}|${node.name}|${node.tooltip}|${node.link}\n`;
+            result += `${node.pos.x}|${node.pos.y}|${node.radius}|${node.name}|${node.right}|${node.tooltip}|${node.link}\n`;
         });
         result += "### BEGIN CONNECTIONS ###\n";
         this.connections.forEach(conn => {
@@ -285,6 +287,7 @@ class NodeGraph {
             this.nodes.push(new Node(
                 (this.cam.x + 500) * this.cam.zoom,
                 (this.cam.y + 250) * this.cam.zoom,
+                30,
                 "",
                 "",
                 ""
@@ -404,10 +407,15 @@ class NodeGraph {
             else edited.radius = parseFloat(this.dataElem[2].value);
             if (document.activeElement !== this.dataElem[3]) this.dataElem[3].value = edited.name;
             else edited.name = this.dataElem[3].value;
-            if (document.activeElement !== this.dataElem[4]) this.dataElem[4].value = edited.tooltip;
-            else edited.tooltip = this.dataElem[4].value;
-            if (document.activeElement !== this.dataElem[5]) this.dataElem[5].value = edited.link;
-            else edited.link = this.dataElem[5].value;
+
+            edited.right = this.dataElem[4].checked;
+            //console.log(edited.right);
+            //console.log(this.dataElem[4].checked);
+            
+            if (document.activeElement !== this.dataElem[5]) this.dataElem[5].value = edited.tooltip;
+            else edited.tooltip = this.dataElem[5].value;
+            if (document.activeElement !== this.dataElem[6]) this.dataElem[6].value = edited.link;
+            else edited.link = this.dataElem[6].value;
         } else {
             this.dataElem.forEach(e => {e.value = ""});
         } 
@@ -431,10 +439,11 @@ class Node {
     tooltip = null;
     link = null;
 
-    constructor(x, y, radius, name, tooltip, link) {
+    constructor(x, y, radius, name, right, tooltip, link) {
         this.pos = new Vector2d(x, y);
         this.radius = radius;
         this.name = name;
+        this.right = right;
         if (tooltip) this.tooltip = tooltip;
         if (link) this.link = link;
     }
@@ -480,10 +489,16 @@ class Node {
         ctx.stroke();
 
         ctx.font = 12 / camera.zoom + "px SM64Font";
-        ctx.textBaseline = "top";
-        ctx.textAlign = "center";
         ctx.fillStyle = "black";
-        ctx.fillText(this.name, newpos.x, newpos.y + 14 / camera.zoom + this.radius / camera.zoom);
+        if (this.right) {
+            ctx.textBaseline = "center";
+            ctx.textAlign = "left";
+            ctx.fillText(this.name, newpos.x + 7 / camera.zoom + this.radius / camera.zoom, newpos.y);
+        } else {
+            ctx.textBaseline = "top";
+            ctx.textAlign = "center";
+            ctx.fillText(this.name, newpos.x, newpos.y + 14 / camera.zoom + this.radius / camera.zoom);
+        }
     }
 
     pointWithin(x, y, camera) {
