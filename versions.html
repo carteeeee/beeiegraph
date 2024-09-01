@@ -12,7 +12,7 @@
         <button id="editbtn">edit</button>
         <button id="connbtn" class="hidden">start connection</button>
         <button id="rcbtn" class="hidden">remove connection</button>
-        <button id="newbtn" class="hidden">new node</button><br>
+        <button id="newbtn" class="hidden">new node</button>
         <button id="rnbtn" class="hidden">remove node</button><br>
         <textarea readonly="true" id="editresult" class="hidden"></textarea><br>
         <table id="table" class="hidden">
@@ -58,14 +58,14 @@
                 let connbtn = document.getElementById("connbtn");       // get the connection button
                 let rcbtn = document.getElementById("rcbtn");           // get the remove connection button
                 let newbtn = document.getElementById("newbtn");         // get the new node button
-                let rnbtn = document.getElementById("rnbtn");         // get the remove node button
+                let rnbtn = document.getElementById("rnbtn");           // get the remove node button
                 let editresult = document.getElementById("editresult"); // get the edit result textarea
                 let table = document.getElementById("table");           // table
                 let xpos = document.getElementById("xpos");             // x position 
                 let ypos = document.getElementById("ypos");             // y position
                 let radi = document.getElementById("radi");             // radius
                 let name = document.getElementById("name");             // name
-                let rite = document.getElementById("right");            // right label
+                let right = document.getElementById("right");            // right label
                 let text = document.getElementById("text");             // text
                 let link = document.getElementById("link");             // link
                 let graph = new NodeGraph(
@@ -73,10 +73,10 @@
                     "white",
                     gdata,
                     false,
-                    true,
+                    false,
                     [editbtn, connbtn, rcbtn, newbtn, rnbtn,
                      editresult, table, xpos, ypos,
-                     radi, name, rite, text, link]);                    // make the graph!
+                     radi, name, right, text, link]);                    // make the graph!
                 let last = null;                                        // last time ran
 
                 const update = timestamp => {      // update graph function

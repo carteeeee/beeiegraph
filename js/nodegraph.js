@@ -1,7 +1,41 @@
 // node graph library made by me (carter)
+
+// --- CONSTANTS ---
+const DEFAULT_RADIUS = 30;
+
 const LINK_COLOR = "#777";
 const LINK_WIDTH = 4;
 
+const TOOLTIP_WIDTH = 300;
+const TOOLTIP_HEIGHT = 200;
+const TOOLTIP_OUTLINE_WIDTH = 3;
+const TOOLTIP_TEXT_TOLERANCE = 15;
+const TOOLTIP_FONT_SIZE = 12;
+const TOOLTIP_LINE_HEIGHT = 22;
+const TOOLTIP_X_OFFSET = 8;
+const TOOLTIP_Y_OFFSET = 14;
+
+// --- HELPER FUNCTIONS ---
+const getLines = (ctx, text, maxWidth) => { // from https://stackoverflow.com/a/16599668
+    var words = text.split(" ");
+    var lines = [];
+    var currentLine = words[0];
+
+    for (var i = 1; i < words.length; i++) {
+        var word = words[i];
+        var width = ctx.measureText(currentLine + " " + word).width;
+        if (width < maxWidth) {
+            currentLine += " " + word;
+        } else {
+            lines.push(currentLine);
+            currentLine = word;
+        }
+    }
+    lines.push(currentLine);
+    return lines;
+}
+
+// --- CLASSES ---
 class Vector2d {
     constructor(x, y) {
         this.x = x;
@@ -47,7 +81,7 @@ class GraphData {
             nodesInternal.push(new Node(
                 node.x,
                 node.y,
-                30,
+                DEFAULT_RADIUS,
                 node.name,
                 false,
                 node.text,
@@ -79,7 +113,7 @@ class GraphData {
                     nodesInternal.push(new Node(
                         parseFloat(node[0]) ?? 0,
                         parseFloat(node[1]) ?? 0,
-                        parseInt(node[2]) ?? 30,
+                        parseInt(node[2]) ?? DEFAULT_RADIUS,
                         node[3] ?? "",
                         node[4] == "false" ? false : true,
                         node[5] ?? "",
@@ -289,8 +323,9 @@ class NodeGraph {
             this.rnBtn.classList.add("hidden");
             
             let r = this.beeData;
-            //console.log(r)
-            this.editResult.innerHTML = r;
+            //console.log(r);
+            //console.log(this.editResult);
+            this.editResult.textContent = r;
 
             this.editResult.classList.remove("hidden");
         }
@@ -301,7 +336,7 @@ class NodeGraph {
             this.nodes.push(new Node(
                 (this.cam.x + 500) * this.cam.zoom,
                 (this.cam.y + 250) * this.cam.zoom,
-                30,
+                DEFULAT_RADIUS,
                 "",
                 "",
                 ""
@@ -311,7 +346,6 @@ class NodeGraph {
     }
 
     rnPressed(e) {
-        console.log("a")
         if (this.editing && this.editingNode !== -1) {
             this.connections = this.connections.filter(conn => (conn[0] !== this.editingNode) && (conn[1] !== this.editingNode));
             this.nodes.splice(this.editingNode, 1);
@@ -324,6 +358,10 @@ class NodeGraph {
                 };
                 return [move(conn[0]), move(conn[1])];
             });
+
+            if (!this.nodes[this.editingNode]) {
+                this.editingNode = -1;
+            }
         }
     }
 
@@ -422,16 +460,19 @@ class NodeGraph {
             this.ctx.beginPath();
             this.ctx.fillStyle = "#eee";
             this.ctx.strokeStyle = "black";
-            this.ctx.lineWidth = 3;
-            this.ctx.rect(this.mouseX, this.mouseY, 300, 200);
+            this.ctx.lineWidth = TOOLTIP_OUTLINE_WIDTH;
+            this.ctx.rect(this.mouseX, this.mouseY, TOOLTIP_WIDTH, TOOLTIP_HEIGHT);
             this.ctx.fill();
             this.ctx.stroke();
 
-            this.ctx.font = "12px SM64Font";
+            this.ctx.font = TOOLTIP_FONT_SIZE + "px SM64Font";
             this.ctx.textBaseline = "top";
             this.ctx.textAlign = "start";
             this.ctx.fillStyle = "black";
-            this.ctx.fillText(tooltip, this.mouseX + 8, this.mouseY + 14);
+            let lines = getLines(this.ctx, tooltip, TOOLTIP_WIDTH - TOOLTIP_TEXT_TOLERANCE);
+            lines.forEach((line, index) => {
+                this.ctx.fillText(line, this.mouseX + TOOLTIP_X_OFFSET, this.mouseY + TOOLTIP_Y_OFFSET + (index * TOOLTIP_LINE_HEIGHT));
+            });
         }
 
         if (this.editing && this.editingNode != -1) {
