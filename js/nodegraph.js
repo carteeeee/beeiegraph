@@ -149,6 +149,8 @@ class NodeGraph {
     editing = false;
     connecting = false;
     connectingNode = -1;
+    disconnecting = false;
+    disconnectingNode = -1;
     editingNode = -1;
     physics = false;
     arrows = false;
@@ -160,6 +162,10 @@ class NodeGraph {
 
     get connections() {
         return this.data.connections;
+    }
+
+    set connections(newValue) {
+        this.data.connections = newValue;
     }
 
     get jsonData() {
@@ -191,6 +197,7 @@ class NodeGraph {
         
         if (this.editBtn) this.editBtn.addEventListener("click", this.editPressed.bind(this), false);
         if (this.connBtn) this.connBtn.addEventListener("click", (e=>{this.setConnecting(!this.connecting)}).bind(this), false);
+        if (this.rcBtn) this.rcBtn.addEventListener("click", (e=>{this.setRemoveConnection(!this.disconnecting)}).bind(this), false);
         if (this.newBtn) this.newBtn.addEventListener("click", this.newPressed.bind(this), false);
 
         canvas.addEventListener("mousemove", this.mouseUpdate.bind(this), false);
@@ -237,10 +244,17 @@ class NodeGraph {
                 if (this.connecting) {
                     if (this.connectingNode !== -1) {
                         this.connections.push([this.connectingNode, this.draggingNode]);
-                        this.connectingNode = -1;
                         this.setConnecting(false);
                     } else {
                         this.connectingNode = this.draggingNode;
+                    }
+                }
+                else if (this.disconnecting) {
+                    if (this.disconnectingNode !== -1) {
+                        this.connections =this.connections.filter(conn => (conn[0] !== this.disconnectingNode) || (conn[1] !== this.draggingNode)); // tanks js
+                        this.setRemoveConnection(false);
+                    } else {
+                        this.disconnectingNode = this.draggingNode;
                     }
                 }
                 else if (this.editing) this.editingNode = this.draggingNode==this.editingNode ? -1 : this.draggingNode;
@@ -265,6 +279,7 @@ class NodeGraph {
             this.editBtn.innerText = "finish";
             this.editTable.classList.remove("hidden");
             this.connBtn.classList.remove("hidden");
+            this.rcBtn.classList.remove("hidden");
             this.newBtn.classList.remove("hidden");
         } else {
             this.editing = false;
@@ -272,6 +287,7 @@ class NodeGraph {
             this.editBtn.innerText = "edit";
             this.editTable.classList.add("hidden");
             this.connBtn.classList.add("hidden");
+            this.rcBtn.classList.add("hidden");
             this.newBtn.classList.add("hidden");
             
             let r = this.beeData;
@@ -300,6 +316,12 @@ class NodeGraph {
         this.connecting = newValue;
         if (!newValue) this.connectingNode = -1;
         this.connBtn.innerText = this.connecting ? "cancel connection" : "start connection";
+    }
+
+    setRemoveConnection(newValue) {
+        this.disconnecting = newValue;
+        if (!newValue) this.disconnectingNode = -1;
+        this.rcBtn.innerText = this.disconnecting ? "cancel remove connection" : "remove connection";
     }
 
     draw(delta) {
@@ -377,7 +399,7 @@ class NodeGraph {
 
         this.nodes.forEach((node, index) => {
             if (!(this.dragging === 2 && this.draggingNode === index)) node.move(delta);
-            node.draw(this.ctx, this.cam, (index===this.editingNode && this.editing) || (index===this.connectingNode && this.connecting));
+            node.draw(this.ctx, this.cam, (index===this.editingNode && this.editing) || (index===this.connectingNode && this.connecting) || (index===this.disconnectingNode && this.disconnecting));
             if (node.pointWithin(this.mouseX, this.mouseY, this.cam)) tooltip = node.tooltip;
         });
 
