@@ -61,49 +61,43 @@ class GraphData {
     static fromBee(data) {
         let nodesInternal = [];
         let connectionsInternal = [];
-        let curLine = "";
         let state = 0;
-        for (var i=0; i<data.length; i++) {
-            let c = data[i]
-            if (c == "\n") {
-                switch (state) {
-                    case 0:
-                        if (curLine.includes("### BEGIN NODES ###")) state = 1;
-                        break;
-                    case 1:
-                        if (curLine.includes("### BEGIN CONNECTIONS ###")) {
-                            state = 2;
-                            break;
-                        }
-                        console.log(curLine);
-                        let node = curLine.replaceAll("\r", "").split("|");
-                        nodesInternal.push(new Node(
-                            parseFloat(node[0]) ?? 0,
-                            parseFloat(node[1]) ?? 0,
-                            parseInt(node[2]) ?? 30,
-                            node[3] ?? "",
-                            node[4] == "false" ? false : true,
-                            node[5] ?? "",
-                            node[6] ?? ""
-                        ));
-                        break;
-                    case 2:
-                        if (curLine.includes("### END BEE ###")) {
-                            state = 3;
-                            break;
-                        }
-                        console.log(curLine);
-                        connectionsInternal.push(curLine.replaceAll("\r", "").split("|"));
-                        break;
-                    case 3:
-                        break;
-                }
 
-                curLine = "";
-            } else {
-                curLine += c;
+        let splitData = data.split("\n");
+        splitData.forEach(curLine => {
+            switch (state) {
+                case 0:
+                    if (curLine.includes("### BEGIN NODES ###")) state = 1;
+                    break;
+                case 1:
+                    if (curLine.includes("### BEGIN CONNECTIONS ###")) {
+                        state = 2;
+                        break;
+                    }
+                    //console.log(curLine);
+                    let node = curLine.replaceAll("\r", "").split("|");
+                    nodesInternal.push(new Node(
+                        parseFloat(node[0]) ?? 0,
+                        parseFloat(node[1]) ?? 0,
+                        parseInt(node[2]) ?? 30,
+                        node[3] ?? "",
+                        node[4] == "false" ? false : true,
+                        node[5] ?? "",
+                        node[6] ?? ""
+                    ));
+                    break;
+                case 2:
+                    if (curLine.includes("### END BEE ###")) {
+                        state = 3;
+                        break;
+                    }
+                    //console.log(curLine);
+                    connectionsInternal.push(curLine.replaceAll("\r", "").split("|"));
+                    break;
+                case 3:
+                    break;
             }
-        }
+        });
 
         return new this(null, data, nodesInternal, connectionsInternal);
     }
@@ -189,9 +183,10 @@ class NodeGraph {
         this.connBtn = editElem[1];
         this.rcBtn = editElem[2];
         this.newBtn = editElem[3];
-        this.editResult = editElem[4];
-        this.editTable = editElem[5];
-        this.dataElem = editElem.slice(6, editElem.length);
+        this.rnBtn = editElem[4];
+        this.editResult = editElem[5];
+        this.editTable = editElem[6];
+        this.dataElem = editElem.slice(7, editElem.length);
         this.cam = new Camera(-500, -250, 1);
         this.lastFPS = Date.now();
         
@@ -199,6 +194,7 @@ class NodeGraph {
         if (this.connBtn) this.connBtn.addEventListener("click", (e=>{this.setConnecting(!this.connecting)}).bind(this), false);
         if (this.rcBtn) this.rcBtn.addEventListener("click", (e=>{this.setRemoveConnection(!this.disconnecting)}).bind(this), false);
         if (this.newBtn) this.newBtn.addEventListener("click", this.newPressed.bind(this), false);
+        if (this.rnBtn) this.rnBtn.addEventListener("click", this.rnPressed.bind(this), false);
 
         canvas.addEventListener("mousemove", this.mouseUpdate.bind(this), false);
         canvas.addEventListener("mouseenter", this.mouseUpdate.bind(this), false);
@@ -251,7 +247,7 @@ class NodeGraph {
                 }
                 else if (this.disconnecting) {
                     if (this.disconnectingNode !== -1) {
-                        this.connections =this.connections.filter(conn => (conn[0] !== this.disconnectingNode) || (conn[1] !== this.draggingNode)); // tanks js
+                        this.connections = this.connections.filter(conn => (conn[0] !== this.disconnectingNode) || (conn[1] !== this.draggingNode)); // tanks js
                         this.setRemoveConnection(false);
                     } else {
                         this.disconnectingNode = this.draggingNode;
@@ -281,6 +277,7 @@ class NodeGraph {
             this.connBtn.classList.remove("hidden");
             this.rcBtn.classList.remove("hidden");
             this.newBtn.classList.remove("hidden");
+            this.rnBtn.classList.remove("hidden");
         } else {
             this.editing = false;
             this.connecting = false;
@@ -289,9 +286,10 @@ class NodeGraph {
             this.connBtn.classList.add("hidden");
             this.rcBtn.classList.add("hidden");
             this.newBtn.classList.add("hidden");
+            this.rnBtn.classList.add("hidden");
             
             let r = this.beeData;
-            console.log(r)
+            //console.log(r)
             this.editResult.innerHTML = r;
 
             this.editResult.classList.remove("hidden");
@@ -309,6 +307,23 @@ class NodeGraph {
                 ""
             ));
             this.editingNode = this.nodes.length - 1;
+        }
+    }
+
+    rnPressed(e) {
+        console.log("a")
+        if (this.editing && this.editingNode !== -1) {
+            this.connections = this.connections.filter(conn => (conn[0] !== this.editingNode) && (conn[1] !== this.editingNode));
+            this.nodes.splice(this.editingNode, 1);
+            this.connections = this.connections.map(conn => {
+                const move = n => {
+                    if (n > this.editingNode) {
+                        return n - 1;
+                    }
+                    return n;
+                };
+                return [move(conn[0]), move(conn[1])];
+            });
         }
     }
 
