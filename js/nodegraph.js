@@ -15,6 +15,21 @@ const TOOLTIP_LINE_HEIGHT = 22;
 const TOOLTIP_X_OFFSET = 8;
 const TOOLTIP_Y_OFFSET = 14;
 
+const FPS_TEXT_SIZE = 12;
+const FPS_X_OFFSET = 10; 
+const FPS_Y_OFFSET = 15;
+
+const PHYSICS_RANDOM_RANGE = 100;
+const PHYSICS_RANDOM_LARGE = 50;
+const PHYSICS_CONNECTION_ATTRACTION = 100;
+const PHYSICS_MAX_REPEL = 300;
+const PHYSICS_VELOCITY_DIVISOR = 1000;
+
+const NODE_TEXT_SIZE = 12;
+const NODE_TEXT_X_OFFSET = 7;
+const NODE_TEXT_Y_OFFSET = 14;
+const NODE_CLICK_OFFSET = 10;
+
 // --- HELPER FUNCTIONS ---
 const getLines = (ctx, text, maxWidth) => { // from https://stackoverflow.com/a/16599668
     var words = text.split(" ");
@@ -503,11 +518,11 @@ class NodeGraph {
             this.lastFPS = Date.now();
         }
 
-        this.ctx.font = "12px SM64Font";
+        this.ctx.font = FPS_TEXT_SIZE + "px SM64Font";
         this.ctx.textBaseline = "top";
         this.ctx.textAlign = "start";
         this.ctx.fillStyle = "black";
-        this.ctx.fillText("fps: " + this.fps.toFixed(2), 10, 15);
+        this.ctx.fillText("fps: " + this.fps.toFixed(2), FPS_X_OFFSET, FPS_Y_OFFSET);
     }
 }
 
@@ -533,21 +548,21 @@ class Node {
             if (this != node) {
                 let x = this.pos.x - node.pos.x;
                 let y = this.pos.y - node.pos.y;
-                if (x === 0) x = Math.random() * 100 - 50;
-                if (y === 0) y = Math.random() * 100 - 50;
+                if (x === 0) x = Math.random() * PHYSICS_RANDOM_RANGE - PHYSICS_RANDOM_LARGE;
+                if (y === 0) y = Math.random() * PHYSICS_RANDOM_RANGE - PHYSICS_RANDOM_LARGE;
                 let d = Math.sqrt(x*x + y*y);
                 let c = 0;
                 if (conns.indexOf(index) !== -1) {
-                    c = 1 - d / 100;
+                    c = 1 - d / PHYSICS_CONNECTION_ATTRACTION;
                 } else {
-                    c = 1 - Math.max(0, Math.min(d, 300)) / 300;
+                    c = 1 - Math.max(0, Math.min(d, PHYSICS_MAX_REPEL)) / PHYSICS_MAX_REPEL;
                 }
                 this.velocityX += x*c;
                 this.velocityY += y*c;
             }
         });
-        this.velocityX /= 1000;
-        this.velocityY /= 1000;
+        this.velocityX /= PHYSICS_VELOCITY_DIVISOR;
+        this.velocityY /= PHYSICS_VELOCITY_DIVISOR;
     }
     
     move(delta) {
@@ -566,23 +581,23 @@ class Node {
         ctx.fill();
         ctx.stroke();
 
-        ctx.font = 12 / camera.zoom + "px SM64Font";
+        ctx.font = NODE_TEXT_SIZE / camera.zoom + "px SM64Font";
         ctx.fillStyle = "black";
         if (this.right) {
             ctx.textBaseline = "center";
             ctx.textAlign = "left";
-            ctx.fillText(this.name, newpos.x + 7 / camera.zoom + this.radius / camera.zoom, newpos.y);
+            ctx.fillText(this.name, newpos.x + NODE_TEXT_X_OFFSET / camera.zoom + this.radius / camera.zoom, newpos.y);
         } else {
             ctx.textBaseline = "top";
             ctx.textAlign = "center";
-            ctx.fillText(this.name, newpos.x, newpos.y + 14 / camera.zoom + this.radius / camera.zoom);
+            ctx.fillText(this.name, newpos.x, newpos.y + NODE_TEXT_Y_OFFSET / camera.zoom + this.radius / camera.zoom);
         }
     }
 
     pointWithin(x, y, camera) {
         let newpos = camera.transform(new Vector2d(
-            this.pos.x + 10 * camera.zoom,
-            this.pos.y + 10 * camera.zoom
+            this.pos.x + NODE_CLICK_OFFSET * camera.zoom,
+            this.pos.y + NODE_CLICK_OFFSET * camera.zoom
         ));
         return (newpos.x - x) ** 2 + (newpos.y - y) ** 2 < (this.radius / camera.zoom) ** 2;
     }
